@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- iOS 相关meta标签 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="随机舞蹈">
+    
+    <!-- 添加到主屏幕的图标 -->
+    <link rel="apple-touch-icon" href="icon-180.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
+    
+    <!-- 启动画面 -->
+    <link rel="apple-touch-startup-image" href="launch.png">
+    
+    <title>随机舞蹈视频</title>
+    <style>
+        /* 防止iOS点击闪烁 */
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        /* 适配刘海屏和曲面屏 */
+        body {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Microsoft YaHei', sans-serif;
+            flex-direction: column; /* 使内容垂直排列 */
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding-bottom: calc(20px + env(safe-area-inset-bottom));
+            position: relative; /* 使容器相对定位 */
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 200px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+            min-height: 400px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 修改为cover以适配曲面屏，避免黑边 */
+            transform: translate(-50%, -50%); /* 居中对齐 */
+            border-radius: 10px;
+            background: #000;
+            touch-action: manipulation;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            -webkit-appearance: none;
+            appearance: none;
+            min-width: 120px;
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            background-size: 200% auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 所有按钮设置渐变色 */
+        .next-button {
+            background-image: linear-gradient(45deg, #FF6B6B, #FFE66D);
+        }
+
+        .refresh-button {
+            background-image: linear-gradient(45deg, #4ECDC4, #556270);
+        }
+
+        .play-toggle-button {
+            background-image: linear-gradient(45deg, #6C5CE7, #a367dc);
+        }
+
+        .like-button {
+            background-image: linear-gradient(45deg, #FF6B6B, #FFE66D);
+        }
+
+        .pip-button {
+            background-image: linear-gradient(45deg, #6bd0ff, #ce43b7);
+        }
+
+        button:hover {
+            background-position: right center;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                width: 98%;
+                padding: 10px;
+            }
+
+            button {
+                min-width: 100px;
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .controls {
+                gap: 10px;
+            }
+        }
+
+        /* 添加加载动画 */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+
+        /* 添加iOS风格的加载动画 */
+        @keyframes ios-loading {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            margin: -20px 0 0 -20px;
+            border: 4px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: ios-loading 1s linear infinite;
+        }
+
+        /* 添加视频播放器控件的iOS风格 */
+        video::-webkit-media-controls-panel {
+            background-image: linear-gradient(transparent, rgba(0, 0, 0, 0.5));
+        }
+
+        /* 爱心动画效果 */
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .floating-heart {
+            position: absolute;
+            font-size: 20px;
+            animation: floatUp 3s forwards;
+            pointer-events: none;
+        }
+
+        /* 提示框样式 */
+        .alert {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: none; /* 默认隐藏 */
+        }
+
+        /* 版权信息样式 */
+        .copyright {
+            margin-top: 20px;
+            font-size: 14px;
+            text-align: center; /* 居中显示 */
+            background: linear-gradient(45deg, #08962b, #431b8d); /* 渐变色 */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; /* 文字填充透明 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="video-container">
+            <video id="danceVideo" controls>
+                您的浏览器不支持视频播放。
+            </video>
+        </div>
+        <div class="controls">
+            <button class="next-button" onclick="nextVideo()">下一个</button>
+            <button class="refresh-button" onclick="refreshVideo()">刷新</button>
+            <button class="play-toggle-button" onclick="togglePlay()">暂停/播放</button>
+            <button class="like-button" onclick="createHearts()">点赞</button>
+            <button class="pip-button" onclick="togglePip()">画中画</button>
+        </div>
+        <div class="alert" id="alertBox">复制成功，请打开浏览器进行下载保存！</div>
+        <div class="copyright"><a href="https://www.dadawz.cn/" id="copyrightLink">© 2024 大大-随机舞蹈. 保留所有权利.</a></div> <!-- 大大博客 https://www.dadawz.cn/-->
+    </div>
+
+    <script>
+        /**
+         * @type {HTMLVideoElement}
+         */
+        const video = document.getElementById('danceVideo');
+
+        /**
+         * 视频源数组 - 可以替换为您自己的API或视频源
+         * @type {string[]}
+         */
+        const videoSources = [
+            'https://api.yviii.com/video/suiji.php',
+            'https://api.yviii.com/video/i.php',
+            'http://api.mhycloud.fun:81/api/dy',
+        ];
+
+        /**
+         * 获取随机视频源
+         * @returns {string} 随机视频URL
+         */
+        function getRandomVideo() {
+            const randomIndex = Math.floor(Math.random() * videoSources.length);
+            return videoSources[randomIndex];
+        }
+
+        /**
+         * 添加加载状态处理
+         */
+        function setLoading(isLoading) {
+            const video = document.getElementById('danceVideo');
+            if (isLoading) {
+                video.classList.add('loading');
+            } else {
+                video.classList.remove('loading');
+            }
+        }
+
+        /**
+         * 增强版的下一个视频函数
+         */
+        async function nextVideo() {
+            setLoading(true);
+            const newSrc = getRandomVideo();
+            // 确保不会连续播放同一个视频
+            if (newSrc === video.src) {
+                return nextVideo();
+            }
+            video.src = newSrc;
+            try {
+                await video.play();
+            } catch (error) {
+                console.error('视频播放失败:', error);
+            }
+            video.oncanplay = () => {
+                setLoading(false);
+            };
+        }
+
+        /**
+         * 刷新当前视频
+         */
+        function refreshVideo() {
+            video.currentTime = 0;
+            video.play();
+        }
+
+        /**
+         * 切换视频播放/暂停状态
+         */
+        function togglePlay() {
+            if (video.paused) {
+                video.play();
+            } else {
+                video.pause();
+            }
+        }
+
+        /**
+         * 创建爱心动画效果
+         */
+        function createHearts() {
+            for(let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.innerHTML = ['❤️', '⭐', '✨', '💖', '💕'][Math.floor(Math.random() * 5)];
+                    heart.className = 'floating-heart';
+                    heart.style.left = Math.random() * window.innerWidth + 'px';
+                    heart.style.fontSize = (20 + Math.random() * 20) + 'px';
+                    document.body.appendChild(heart);
+                    
+                    setTimeout(() => {
+                        heart.remove();
+                    }, 3000);
+                }, i * 100);
+            }
+        }
+
+        /**
+         * 切换画中画模式
+         */
+        function togglePip() {
+            if (document.pictureInPictureElement) {
+                document.exitPictureInPicture().catch(error => {
+                    console.error('退出画中画失败:', error);
+                });
+            } else {
+                video.requestPictureInPicture().catch(error => {
+                    console.error('进入画中画失败:', error);
+                });
+            }
+        }
+
+        // 禁用双指缩放
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+
+        // 处理iOS的各种手势
+        let touchStartY = 0;
+        document.addEventListener('touchstart', function(e) {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: false });
+
+        document.addEventListener('touchmove', function(e) {
+            const touchY = e.touches[0].clientY;
+            const delta = touchStartY - touchY;
+
+            // 如果不是在视频上滑动，则阻止默认行为
+            if (!e.target.matches('video')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // 添加iOS的错误处理
+        video.addEventListener('error', function(e) {
+            console.error('视频加载错误:', e.target.error);
+            nextVideo();
+        });
+
+        // 处理iOS后台播放
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                video.pause();
+            }
+        });
+
+        // 初始化
+        window.onload = function() {
+            nextVideo();
+            video.addEventListener('ended', nextVideo); // 播放完自动播放下一个
+        };
+    </script>
+</body>
+</html>
