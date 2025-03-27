@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,16 +8,16 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="随机舞蹈">
-    
+
     <!-- 添加到主屏幕的图标 -->
     <link rel="apple-touch-icon" href="icon-180.png">
     <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
     <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
-    
+
     <!-- 启动画面 -->
     <link rel="apple-touch-startup-image" href="launch.png">
-    
+
     <title>随机舞蹈视频</title>
     <style>
         /* 防止iOS点击闪烁 */
@@ -26,7 +27,7 @@
             -webkit-user-select: none;
             user-select: none;
         }
-        
+
         /* 适配刘海屏和曲面屏 */
         body {
             padding-top: env(safe-area-inset-top);
@@ -159,9 +160,17 @@
 
         /* 添加加载动画 */
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
 
         .loading {
@@ -170,8 +179,13 @@
 
         /* 添加iOS风格的加载动画 */
         @keyframes ios-loading {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .loading::after {
@@ -199,6 +213,7 @@
                 transform: translateY(0) scale(1);
                 opacity: 1;
             }
+
             100% {
                 transform: translateY(-100px) scale(1.5);
                 opacity: 0;
@@ -232,10 +247,13 @@
             text-align: center; /* 居中显示 */
             background: linear-gradient(45deg, #08962b, #431b8d); /* 渐变色 */
             -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent; /* 文字填充透明 */
+            -moz-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="video-container">
@@ -335,7 +353,7 @@
          * 创建爱心动画效果
          */
         function createHearts() {
-            for(let i = 0; i < 15; i++) {
+            for (let i = 0; i < 15; i++) {
                 setTimeout(() => {
                     const heart = document.createElement('div');
                     heart.innerHTML = ['❤️', '⭐', '✨', '💖', '💕'][Math.floor(Math.random() * 5)];
@@ -343,7 +361,7 @@
                     heart.style.left = Math.random() * window.innerWidth + 'px';
                     heart.style.fontSize = (20 + Math.random() * 20) + 'px';
                     document.body.appendChild(heart);
-                    
+
                     setTimeout(() => {
                         heart.remove();
                     }, 3000);
@@ -367,17 +385,17 @@
         }
 
         // 禁用双指缩放
-        document.addEventListener('gesturestart', function(e) {
+        document.addEventListener('gesturestart', function (e) {
             e.preventDefault();
         });
 
         // 处理iOS的各种手势
         let touchStartY = 0;
-        document.addEventListener('touchstart', function(e) {
+        document.addEventListener('touchstart', function (e) {
             touchStartY = e.touches[0].clientY;
         }, { passive: false });
 
-        document.addEventListener('touchmove', function(e) {
+        document.addEventListener('touchmove', function (e) {
             const touchY = e.touches[0].clientY;
             const delta = touchStartY - touchY;
 
@@ -388,23 +406,24 @@
         }, { passive: false });
 
         // 添加iOS的错误处理
-        video.addEventListener('error', function(e) {
+        video.addEventListener('error', function (e) {
             console.error('视频加载错误:', e.target.error);
             nextVideo();
         });
 
         // 处理iOS后台播放
-        document.addEventListener('visibilitychange', function() {
+        document.addEventListener('visibilitychange', function () {
             if (document.hidden) {
                 video.pause();
             }
         });
 
         // 初始化
-        window.onload = function() {
+        window.onload = function () {
             nextVideo();
             video.addEventListener('ended', nextVideo); // 播放完自动播放下一个
         };
     </script>
 </body>
+
 </html>
