@@ -165,13 +165,16 @@
             <div class="progress-fill" id="progressBar"></div>
         </div>
         <div class="result" id="resultDiv"></div>
-        <button id="neteaseUploadBtn">网易图床</button>
-        <button id="_360UploadBtn">360 图床</button>
-        <button id="sougouUploadBtn">搜狗图床</button>
-        <button id="jdUploadBtn">京东图床</button>
-        <button id="imgbbUploadBtn">ImgBB图床</button>
-        <button id="copyUrlBtn">复制图片链接</button>
-        <button id="resetBtn">重置</button>
+            <button id="neteaseUploadBtn">网易图床</button>
+            <button id="_360UploadBtn">360 图床</button>
+            <button id="sougouUploadBtn">搜狗图床</button>
+            <button id="jdUploadBtn">京东图床</button>
+            <button id="imgbbUploadBtn">ImgBB图床</button>
+        <p>
+            <button id="copyUrlBtn">复制图片链接</button>
+            <button id="resetBtn">重置</button>
+        </p>
+
     </div>
     <script>
         const fileInput = document.getElementById('fileInput');
@@ -298,6 +301,7 @@
         bindUploadButton(document.getElementById('_360UploadBtn'), 'https://api.xinyew.cn/api/360tc');
         bindUploadButton(document.getElementById('sougouUploadBtn'), 'https://api.xinyew.cn/api/sogotc');
         bindUploadButton(document.getElementById('jdUploadBtn'), 'https://api.xinyew.cn/api/jdtc');
+        bindUploadButton(document.getElementById('yzUploadBtn'), 'https://api.xinyew.cn/api/psbctc');
         // 这里传递的 URL 只需要基本的 API 地址，具体参数在函数内部处理
         bindUploadButton(document.getElementById('imgbbUploadBtn'), 'https://api.imgbb.com/1/upload');
 
