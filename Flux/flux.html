@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 文生图</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --hover-color: #357abd;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: '宋体', system-ui, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+        .container {
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin: 0.2rem;
+            font-size: 1.8rem;
+        }
+        .form-group {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        label {
+            width: 130px;
+            font-weight: 500;
+            color: #34495e;
+        }
+        textarea, input, select {
+            flex: 1;
+            padding: 0.8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 20px;
+        }
+        input[type="number"] {
+            width: 200px;
+        }
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            justify-content: center;
+        }
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(to right, var(--primary-color), var(--hover-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            width: 100%;
+        }
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+            opacity: 0.9;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        #imageContainer {
+            margin-top: 0.5rem;
+            text-align: center;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .image-section {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        .generatedImage {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            object-fit: contain;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .generatedImage:hover {
+            transform: scale(1.05);
+        }
+        .loading-overlay, .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+        }
+        .loading-overlay {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        .overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .error-message {
+            color: red;
+            font-weight: bold;
+        }
+        .download-button {
+            width: 60px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: background 0.3s ease;
+        }
+        .download-button:hover {
+            background: var(--hover-color);
+        }
+        .download-button:disabled {
+            background: rgba(0, 0, 0, 0.3);
+            cursor: not-allowed;
+        }
+        .preview-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .preview-image {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+        [url=home.php?mod=space&uid=945662]@media[/url] (max-width: 768px) {
+            body {
+                padding: 10px;
+                margin: 10px auto;
+            }
+            .container {
+                padding: 1rem;
+            }
+            .form-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            label {
+                width: auto;
+                font-size: 0.9rem;
+            }
+            input, select, textarea {
+                width: 100% !important;
+            }
+            input[type="number"] {
+                width: 100% !important;
+            }
+            button {
+                font-size: 0.9rem;
+                padding: 10px 20px;
+            }
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI 文生图</h1>
+        <div class="form-group">
+            <label for="prompt">提示词：</label>
+            <textarea id="prompt" placeholder="请输入描述内容（英文）"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="width">宽度(100-2048)：</label>
+            <input type="number" id="width" value="1280" min="100" max="2048">
+        </div>
+        <div class="form-group">
+            <label for="height">高度(100-2048)：</label>
+            <input type="number" id="height" value="720" min="100" max="2048">
+        </div>
+        <div class="form-group">
+            <label for="model">模型：</label>
+            <select id="model">
+                <option value="flux">Flux</option>
+                <option value="flux-pro">Flux-pro</option>
+                <option value="flux-realism">Flux-realism</option>
+                <option value="flux-anime">Flux-anime</option>
+                <option value="flux-3d">Flux-3d</option>
+                <option value="flux-cablyai">Flux-cablyai</option>
+                <option value="turbo">Turbo</option>
+            </select>
+        </div>
+        <div class="button-group">
+            <button id="generateButton">生成图片</button>
+        </div>
+        <div id="imageContainer"></div>
+    </div>
+    <div class="preview-overlay" id="previewOverlay">
+        <img class="preview-image" id="previewImage" src="" alt="预览图片">
+    </div>
+    <script>
+        let currentImageBlobs = [];
+        const imageContainer = document.getElementById('imageContainer');
+        const generateButton = document.getElementById('generateButton');
+        const previewOverlay = document.getElementById('previewOverlay');
+        const previewImage = document.getElementById('previewImage');
+        document.addEventListener('DOMContentLoaded', () => {
+            const imageCount = 10;
+            const fragment = document.createDocumentFragment();
+            for (let i = 0; i < imageCount; i++) {
+                const imageSection = document.createElement('div');
+                imageSection.className = 'image-section';
+                imageSection.innerHTML = `
+                    <img class="generatedImage" src="" alt="生成的图片" style="display: none;">
+                    <div class="loading-overlay">正在生成...</div>
+                    <button class="download-button" style="display: none;" disabled>下载</button>
+                    <div class="overlay">
+                        <div class="error-message">图片生成失败，请检查参数设置</div>
+                    </div>`;
+                fragment.appendChild(imageSection);
+            }
+            imageContainer.appendChild(fragment);
+        });
+        function validateInputs() {
+            const prompt = document.getElementById('prompt').value.trim();
+            const width = parseInt(document.getElementById('width').value);
+            const height = parseInt(document.getElementById('height').value);
+            if (!prompt) return alert('请输入提示词');
+            if (isNaN(width) || width < 100 || width > 2048) return alert('宽度必须在100到2048之间');
+            if (isNaN(height) || height < 100 || height > 2048) return alert('高度必须在100到2048之间');
+            return true;
+        }
+        function updateButtonState(isGenerating) {
+            generateButton.disabled = isGenerating;
+            generateButton.textContent = isGenerating ? '正在生成...' : '生成图片';
+        }
+        function toggleOverlay(overlay, show) {
+            overlay.style.display = show ? 'flex' : 'none';
+        }
+        function generateRandomSeed() {
+            return Math.floor(Math.random() * 1000000);
+        }
+        async function generateImage() {
+            if (!validateInputs()) return;
+            updateButtonState(true);
+            currentImageBlobs = [];
+            const prompt = encodeURIComponent(document.getElementById('prompt').value);
+            const width = document.getElementById('width').value;
+            const height = document.getElementById('height').value;
+            const model = document.getElementById('model').value;
+            const randomSeed = generateRandomSeed();
+            const imageSections = document.querySelectorAll('.image-section');
+            imageSections.forEach(section => {
+                toggleOverlay(section.querySelector('.loading-overlay'), true);
+                toggleOverlay(section.querySelector('.overlay'), false);
+                section.querySelector('.download-button').disabled = true;
+                section.querySelector('.generatedImage').style.pointerEvents = 'none';
+            });
+            try {
+                await Promise.all(Array.from(imageSections).map(async (section, index) => {
+                    const seed = randomSeed + index;
+					const apiUrl = `https://image.pollinations.ai/prompt/${prompt}?width=${width}&height=${height}&seed=${seed}&model=${model}&nologo=true`;
+                    const response = await fetch(apiUrl);
+                    if (!response.ok || response.status === 500 || response.status === 502) {
+                        throw new Error('图片生成失败');
+                    }
+                    const blob = await response.blob();
+                    currentImageBlobs[index] = blob;
+                    const img = section.querySelector('.generatedImage');
+                    img.src = URL.createObjectURL(blob);
+                    img.style.display = 'block';
+                    section.querySelector('.download-button').style.display = 'block';
+                    section.querySelector('.download-button').disabled = false;
+                    img.style.pointerEvents = 'auto';
+                    toggleOverlay(section.querySelector('.loading-overlay'), false);
+                }));
+            } catch (error) {
+                console.error('生成图片失败:', error);
+                imageSections.forEach(section => toggleOverlay(section.querySelector('.overlay'), true));
+            } finally {
+                updateButtonState(false);
+            }
+        }
+        function downloadImage(index) {
+            if (!currentImageBlobs[index]) return;
+            const prompt = document.getElementById('prompt').value.trim();
+            const blob = currentImageBlobs[index];
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = generateFileName(prompt);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+        function generateFileName(prompt) {
+            const cleanPrompt = prompt
+                .substring(0, 30)
+                .replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_')
+                .replace(/_+/g, '_');
+            return `AI_${cleanPrompt}_${Date.now()}.png`;
+        }
+        function showPreviewImage(index) {
+            if (!currentImageBlobs[index]) return;
+            previewImage.src = URL.createObjectURL(currentImageBlobs[index]);
+            previewOverlay.style.display = 'flex';
+        }
+        function closePreview() {
+            previewOverlay.style.display = 'none';
+        }
+        generateButton.addEventListener('click', generateImage);
+        imageContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('download-button')) {
+                const index = Array.from(document.querySelectorAll('.download-button')).indexOf(e.target);
+                downloadImage(index);
+            } else if (e.target.classList.contains('generatedImage')) {
+                const index = Array.from(document.querySelectorAll('.generatedImage')).indexOf(e.target);
+                showPreviewImage(index);
+            }
+        });
+        previewOverlay.addEventListener('click', closePreview);
+    </script>
+</body>
+</html>
