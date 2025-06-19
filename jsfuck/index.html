@@ -1,0 +1,670 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="JS文件加密工具，在线加密，保护您的代码安全！寂寞沙洲冷出品">
+    <meta property="og:title" content="JS文件加密 - 在线免费加密JS代码">
+    <meta property="og:description" content="JavaScript代码在线加密，安全便捷，在线保护您的代码安全！寂寞沙洲冷出品">
+    <link rel="shortcut icon" href="/favicon.ico"  />
+    
+    <title>JavaScript文件加密工具 - 寂寞沙洲冷</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
+    
+    <!-- 搞笑背景音乐 -->
+    <audio id="bgMusic" loop>
+        <source src="https://music.163.com/song/media/outer/url?id=1824045033.mp3"  type="audio/mpeg">
+    </audio>
+    
+    <style>
+        body {
+            font-family: 'Comic Sans MS', '微软雅黑', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border: 2px dashed #4CAF50;
+        }
+        h1 {
+            color: #FF5722;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            font-family: 'Comic Sans MS', cursive;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #9C27B0;
+        }
+        textarea, input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+            background-color: #f9f9f9;
+            transition: all 0.3s;
+        }
+        textarea:focus, input[type="text"]:focus {
+            border-color: #FF9800;
+            box-shadow: 0 0 8px rgba(255, 152, 0, 0.4);
+        }
+        textarea {
+            height: 200px;
+            font-family: monospace;
+        }
+        button {
+            background-color: #FF9800;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 5px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0,0,0,0.2);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #FF9800;
+            background-color: #FFF3E0;
+            border-radius: 8px 8px 0 0;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 12px 20px;
+            transition: 0.3s;
+            color: #E65100;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        .tab button:hover {
+            background-color: #FFE0B2;
+        }
+        .tab button.active  {
+            background-color: #FF9800;
+            color: white;
+        }
+        .tabcontent {
+            display: none;
+            padding: 20px;
+            border: 1px solid #FF9800;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            background-color: white;
+        }
+        .result-area {
+            margin-top: 20px;
+            background-color: #E3F2FD;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .file-info {
+            margin-top: 10px;
+            font-style: italic;
+            color: #607D8B;
+        }
+        .file-error {
+            color: #ff5252;
+            font-weight: bold;
+        }
+        
+        /* 寂寞沙洲冷广告 */
+        .ad-container {
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(45deg, #FF5722, #FF9800);
+            color: white;
+            border-radius: 8px;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+        .ad-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        .ad-link {
+            color: #FFEB3B;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 18px;
+        }
+        .ad-link:hover {
+            text-decoration: underline;
+        }
+        .ad-qrcode {
+            margin-top: 10px;
+            width: 120px;
+            height: 120px;
+            background-color: white;
+            padding: 5px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        
+        /* 音乐控制按钮 */
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #FF5722;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        
+        /* 搞笑提示 */
+        .funny-tip {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 200px;
+            display: none;
+            animation: fadeInOut 3s ease;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        
+        /* 搞笑动画 */
+        @keyframes shake {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(5deg); }
+            50% { transform: rotate(0deg); }
+            75% { transform: rotate(-5deg); }
+            100% { transform: rotate(0deg); }
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(20px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(20px); }
+        }
+        
+        .shake {
+            animation: shake 0.5s;
+        }
+        
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #FF9800;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .status-text {
+            color: white;
+            margin-top: 15px;
+            font-size: 18px;
+            text-align: center;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JavaScript文件加密工具 - 寂寞沙洲冷 <i class="fas fa-lock"></i></h1>
+        
+        <!-- 寂寞沙洲冷广告 -->
+        <div class="ad-container">
+            <div class="ad-title">寂寞沙洲冷 - 程序员的好伙伴</div>
+            <p>专业源码分享，技术交流，项目合作</p>
+            <a href="https://1638276310.github.io/"  class="ad-link" target="_blank">进入主页</a> 
+            <p>QQ/WX: 1638276310</p>
+            <div class="ad-qrcode">
+                <!-- 这里可以放二维码图片 -->
+                <i class="fas fa-qrcode" style="font-size: 100px; color: #333;"></i>
+            </div>
+        </div>
+        
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'inputTab')">输入代码 <i class="fas fa-keyboard"></i></button>
+            <button class="tablinks" onclick="openTab(event, 'fileTab')">上传文件 <i class="fas fa-file-upload"></i></button>
+        </div>
+        
+        <div id="inputTab" class="tabcontent" style="display: block;">
+            <div class="form-group">
+                <label for="jsCode">输入要加密的 JavaScript 代码:</label>
+                <textarea id="jsCode" placeholder="在此粘贴您的JavaScript代码..."></textarea>
+            </div>
+        </div>
+        
+        <div id="fileTab" class="tabcontent">
+            <div class="form-group">
+                <label for="jsFile">选择 JavaScript 文件:</label>
+                <input type="file" id="jsFile" accept=".js">
+                <div id="fileInfo" class="file-info">最大文件大小: 10MB</div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="encryptionKey">加密密钥 (建议32字符以上):</label>
+            <input type="text" id="encryptionKey" placeholder="输入加密密钥..." value="寂寞沙洲冷1638276310">
+            <small style="color: #888;">提示：可以用"寂寞沙洲冷"这样好记的密钥</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="copyrightNotice">自定义版权声明:</label>
+            <input type="text" id="copyrightNotice" placeholder="例如: /* 版权所有 ©️ 2025 寂寞沙洲冷 */" value="/* 寂寞沙洲冷©️版权所有 - 未经授权禁止反编译 - QQ/WX：1638276310  */">
+        </div>
+        
+        <button onclick="encryptCode()" id="encryptBtn"><i class="fas fa-lock"></i> 加密代码</button>
+        
+        <div class="result-area">
+            <label for="encryptedResult">加密结果:</label>
+            <textarea id="encryptedResult" readonly></textarea>
+            <div class="button-group">
+                <button onclick="copyToClipboard()"><i class="fas fa-copy"></i> 复制到剪贴板</button>
+                <button onclick="testEncryptedCode()"><i class="fas fa-play"></i> 测试运行加密代码</button>
+                <button onclick="downloadEncryptedCode()"><i class="fas fa-download"></i> 下载加密文件</button>
+            </div>
+        </div>
+        
+        <!-- 搞笑提示 -->
+        <div class="funny-tip" id="funnyTip">
+            寂寞沙洲冷提醒您：代码千万行，安全第一行！<i class="fas fa-smile-wink"></i>
+        </div>
+        
+        <div class="footer">
+            <p>寂寞沙洲冷JS加密工具 v2.0 | 已修复文件上传问题 | 安全可靠</p>
+        </div>
+    </div>
+    
+    <!-- 加载覆盖层 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div>
+            <div class="spinner"></div>
+            <div class="status-text" id="statusText">加密中...</div>
+        </div>
+    </div>
+    
+    <!-- 音乐控制按钮 -->
+    <div class="music-control" id="musicControl">
+        <i class="fas fa-music"></i>
+    </div>
+ 
+    <script>
+        // 切换标签页 
+        function openTab(evt, tabName) {
+            const tabcontent = document.getElementsByClassName("tabcontent"); 
+            for (let i = 0; i < tabcontent.length;  i++) {
+                tabcontent[i].style.display  = "none";
+            }
+            
+            const tablinks = document.getElementsByClassName("tablinks"); 
+            for (let i = 0; i < tablinks.length;  i++) {
+                tablinks[i].className = tablinks[i].className.replace("  active", "");
+            }
+            
+            document.getElementById(tabName).style.display  = "block";
+            evt.currentTarget.className  += " active";
+            
+            // 如果是文件标签页，设置文件上传事件 
+            if (tabName === 'fileTab' && !document.getElementById('jsFile').hasAttribute('data-listener'))  {
+                document.getElementById('jsFile').addEventListener('change',  handleFileSelect, false);
+                document.getElementById('jsFile').setAttribute('data-listener',  'true');
+            }
+            
+            // 搞笑效果 
+            document.getElementById('funnyTip').style.display  = 'block';
+            setTimeout(() => {
+                document.getElementById('funnyTip').style.display  = 'none';
+            }, 3000);
+        }
+        
+        // 处理文件选择 
+        function handleFileSelect(event) {
+            const file = event.target.files[0]; 
+            const fileInfo = document.getElementById('fileInfo');
+            
+            // 清除状态如果取消选择
+            if (!file) {
+                fileInfo.innerHTML = '';
+                return;
+            }
+            
+            // 检查文件大小
+            const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+            if (file.size > MAX_SIZE) {
+                fileInfo.innerHTML = `<span class="file-error">文件过大 (${(file.size/1024).toFixed(10)}KB)，最大支持10MB</span>`;
+                showFunnyAlert('文件太大，请选择小于10MB的文件', 'error');
+                event.target.value = ''; // 清除文件选择
+                return;
+            }
+            
+            fileInfo.innerHTML  = `已选择文件: <strong>${file.name}</strong>  (${(file.size  / 1024).toFixed(10)} KB) <i class="fas fa-check-circle" style="color: #4CAF50;"></i>`;
+            
+            const reader = new FileReader();
+            reader.onload  = function(e) {
+                document.getElementById('jsCode').value  = e.target.result; 
+                showFunnyTip('文件已加载，准备加密吧！');
+            };
+            
+            reader.onerror = function() {
+                fileInfo.innerHTML = '<span class="file-error">文件读取失败，请重试</span>';
+                showFunnyAlert('文件读取失败', 'error');
+            };
+            
+            reader.readAsText(file); 
+        }
+        
+        // 高强度加密函数 
+        function strongEncrypt(code, key, copyrightNotice) {
+            // 1. 生成随机盐值和初始化向量(增强安全性)
+            const salt = CryptoJS.lib.WordArray.random(128/8); 
+            const iv = CryptoJS.lib.WordArray.random(128/8); 
+            
+            // 2. 使用PBKDF2派生密钥(增强密钥安全性)
+            const iterations = 10000;
+            const keySize = 256/32;
+            const derivedKey = CryptoJS.PBKDF2(key, salt, {
+                keySize: keySize,
+                iterations: iterations 
+            });
+            
+            // 3. AES-256-CBC加密 
+            const encrypted = CryptoJS.AES.encrypt(code,  derivedKey, { 
+                iv: iv,
+                padding: CryptoJS.pad.Pkcs7, 
+                mode: CryptoJS.mode.CBC  
+            });
+            
+            // 4. 构建加密数据对象 
+            const encryptedData = {
+                ct: encrypted.ciphertext.toString(CryptoJS.enc.Base64), 
+                iv: iv.toString(CryptoJS.enc.Hex), 
+                salt: salt.toString(CryptoJS.enc.Hex), 
+                iter: iterations,
+                site: "寂寞沙洲冷 https://1638276310.github.io/", 
+                qq: "1638276310"
+            };
+            
+            // 5. 添加HMAC校验(防篡改)
+            const hmacKey = CryptoJS.PBKDF2(key + "hmac", salt, {
+                keySize: keySize,
+                iterations: iterations 
+            });
+            const hmac = CryptoJS.HmacSHA256(JSON.stringify(encryptedData),  hmacKey);
+            encryptedData.hmac  = hmac.toString(CryptoJS.enc.Hex); 
+            
+            // 6. 生成最终加密代码 
+            const encryptedJson = JSON.stringify(encryptedData); 
+            const base64Encoded = CryptoJS.enc.Utf8.parse(encryptedJson).toString(CryptoJS.enc.Base64); 
+            
+            // 7. 添加自定义版权声明 
+            const finalCode = `${copyrightNotice}\n// ----- 加密内容开始 -----\n` +
+                `(function(){try{var _0x=${JSON.stringify(base64Encoded)};`  +
+                `var _1x=JSON.parse(CryptoJS.enc.Base64.parse(_0x).toString(CryptoJS.enc.Utf8));`  +
+                `var _2x=CryptoJS.PBKDF2(${JSON.stringify(key)},CryptoJS.enc.Hex.parse(_1x.salt),{keySize:8,iterations:_1x.iter});`  +
+                `var _3x=CryptoJS.PBKDF2(${JSON.stringify(key)}+'hmac',CryptoJS.enc.Hex.parse(_1x.salt),{keySize:8,iterations:_1x.iter});`  +
+                `var _4x=CryptoJS.HmacSHA256(JSON.stringify({ct:_1x.ct,iv:_1x.iv,salt:_1x.salt,iter:_1x.iter}),_3x).toString(CryptoJS.enc.Hex);`  +
+                `if(_4x!==_1x.hmac)throw  new Error('完整性校验失败');` +
+                `var _5x=CryptoJS.AES.decrypt(_1x.ct,_2x,{iv:CryptoJS.enc.Hex.parse(_1x.iv),padding:CryptoJS.pad.Pkcs7,mode:CryptoJS.mode.CBC});`  +
+                `return eval(_5x.toString(CryptoJS.enc.Utf8));}catch(e){console.error(' 解密失败:',e);return null;}})();`; 
+            
+            return finalCode;
+        }
+        
+        // 显示加载状态
+        function showLoading(message) {
+            document.getElementById('statusText').textContent = message;
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+        
+        // 隐藏加载状态
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+        
+        // 加密代码 
+        function encryptCode() {
+            const jsCode = document.getElementById('jsCode').value; 
+            const encryptionKey = document.getElementById('encryptionKey').value; 
+            const copyrightNotice = document.getElementById('copyrightNotice').value; 
+            
+            if (!jsCode) {
+                if (document.getElementById('fileTab').style.display === 'block') {
+                    showFunnyAlert('请先上传文件', 'error');
+                } else {
+                    showFunnyAlert('请输入要加密的JavaScript代码', 'error');
+                }
+                return;
+            }
+            
+            if (!encryptionKey) {
+                showFunnyAlert('请输入加密密钥', 'error');
+                return;
+            }
+            
+            if (encryptionKey.length  < 16) {
+                if (!confirm('警告: 加密密钥较短(建议32字符以上)，是否继续?\n小提示：可以用"我爱寂寞沙洲冷3135545"这样好记的密钥')) {
+                    return;
+                }
+            }
+            
+            try {
+                // 添加搞笑动画 
+                const btn = document.getElementById('encryptBtn'); 
+                btn.classList.add('shake'); 
+                setTimeout(() => {
+                    btn.classList.remove('shake'); 
+                }, 500);
+                
+                // 显示加载状态
+                showLoading('加密中...寂寞沙洲冷正在保护您的代码！');
+                
+                setTimeout(() => {
+                    const encryptedCode = strongEncrypt(jsCode, encryptionKey, copyrightNotice);
+                    document.getElementById('encryptedResult').value  = encryptedCode;
+                    
+                    // 隐藏加载状态
+                    hideLoading();
+                    
+                    // 加密完成提示 
+                    showFunnyTip('加密成功！寂寞沙洲冷保护了您的代码！');
+                }, 1000);
+            } catch (e) {
+                hideLoading();
+                showFunnyAlert('加密过程中出错: ' + e.message,  'error');
+                console.error(e); 
+            }
+        }
+        
+        // 搞笑提示函数 
+        function showFunnyAlert(message, type) {
+            const tip = document.getElementById('funnyTip'); 
+            tip.textContent  = message;
+            tip.style.backgroundColor  = type === 'error' ? '#F44336' : '#4CAF50';
+            tip.style.display  = 'block';
+            
+            setTimeout(() => {
+                tip.style.display  = 'none';
+            }, 3000);
+        }
+        
+        // 显示搞笑提示（无背景色变化）
+        function showFunnyTip(message) {
+            const tip = document.getElementById('funnyTip');
+            tip.textContent = message;
+            tip.style.backgroundColor = '#4CAF50';
+            tip.style.display = 'block';
+            
+            setTimeout(() => {
+                tip.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 复制到剪贴板 
+        function copyToClipboard() {
+            const resultTextarea = document.getElementById('encryptedResult'); 
+            if (!resultTextarea.value)  {
+                showFunnyAlert('没有可复制的内容', 'error');
+                return;
+            }
+            
+            resultTextarea.select(); 
+            document.execCommand('copy'); 
+            
+            // 显示搞笑提示 
+            showFunnyTip('已复制到剪贴板！寂寞沙洲冷提醒您要保管好密钥哦~');
+        }
+        
+        // 测试运行加密代码 
+        function testEncryptedCode() {
+            const encryptedCode = document.getElementById('encryptedResult').value; 
+            if (!encryptedCode) {
+                showFunnyAlert('没有可测试的加密代码', 'error');
+                return;
+            }
+            
+            try {
+                console.log('-----  寂寞沙洲冷加密代码测试开始 -----');
+                console.log(' 测试网站: 寂寞沙洲冷 https://1638276310.github.io/'); 
+                console.log(' 联系QQ/WX: 1638276310');
+                eval(encryptedCode);
+                console.log('-----  寂寞沙洲冷加密代码测试完成 -----');
+                showFunnyTip('加密代码运行成功，请查看控制台输出');
+            } catch (e) {
+                console.error(' 加密代码运行错误:', e);
+                showFunnyAlert('加密代码运行出错: ' + e.message,  'error');
+            }
+        }
+        
+        // 下载加密文件 
+        function downloadEncryptedCode() {
+            const encryptedCode = document.getElementById('encryptedResult').value; 
+            if (!encryptedCode) {
+                showFunnyAlert('没有可下载的加密代码', 'error');
+                return;
+            }
+            
+            let filename = '寂寞沙洲冷加密_' + new Date().toISOString().slice(0, 10) + '.js';
+            const fileInput = document.getElementById('jsFile'); 
+            if (fileInput.files.length  > 0) {
+                const originalName = fileInput.files[0].name; 
+                filename = '寂寞沙洲冷加密_' + originalName;
+            }
+            
+            const blob = new Blob([encryptedCode], { type: 'application/javascript' });
+            const url = URL.createObjectURL(blob); 
+            
+            const a = document.createElement('a'); 
+            a.href  = url;
+            a.download  = filename;
+            document.body.appendChild(a); 
+            a.click(); 
+            
+            setTimeout(() => {
+                document.body.removeChild(a); 
+                URL.revokeObjectURL(url); 
+            }, 100);
+            
+            // 下载完成提示 
+            showFunnyTip('文件下载完成！感谢使用寂寞沙洲冷工具~');
+        }
+        
+        // 音乐控制 
+        const musicControl = document.getElementById('musicControl'); 
+        const bgMusic = document.getElementById('bgMusic'); 
+        let isMusicPlaying = false;
+        
+        musicControl.addEventListener('click',  function() {
+            if (isMusicPlaying) {
+                bgMusic.pause(); 
+                musicControl.innerHTML  = '<i class="fas fa-music"></i>';
+                musicControl.style.backgroundColor  = '#FF5722';
+            } else {
+                bgMusic.play(); 
+                musicControl.innerHTML  = '<i class="fas fa-pause"></i>';
+                musicControl.style.backgroundColor  = '#4CAF50';
+            }
+            isMusicPlaying = !isMusicPlaying;
+        });
+        
+        // 页面加载完成显示欢迎信息 
+        window.addEventListener('DOMContentLoaded',  function() {
+            setTimeout(() => {
+                showFunnyTip('欢迎使用寂寞沙洲冷JS加密工具！寂寞沙洲冷 https://1638276310.github.io');
+            }, 1000);
+            
+            // 添加全局错误处理
+            window.addEventListener('error', function(e) {
+                console.error('全局错误:', e.error);
+                showFunnyAlert(`发生错误: ${e.message}`, 'error');
+            });
+        });
+    </script>
+</body>
+</html>
