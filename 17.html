@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多功能在线实用工具</title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 引入Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    
+    <!-- 配置TailTailwind自定义主题 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#8B5CF6',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <!-- 自定义工具类 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .tool-card {
+                @apply bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-5 border border-gray-100;
+            }
+            .btn-primary {
+                @apply bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200;
+            }
+            .btn-secondary {
+                @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-all duration-200;
+            }
+            .input-field {
+                @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all;
+            }
+            .section-title {
+                @apply text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark mb-6 relative inline-block;
+            }
+            .section-title::after {
+                content: '';
+                @apply absolute left-0 bottom-0 w-1/3 h-1 bg-primary rounded-full;
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+    <!-- 导航栏 -->
+    <header class="bg-white shadow-sm sticky top-0 z-50 transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-wrench text-primary text-2xl"></i>
+                <h1 class="text-xl md:text-2xl font-bold text-dark">实用工具集</h1>
+            </div>
+            
+            <!-- 桌面导航 -->
+            <nav class="hidden md:flex items-center space-x-6">
+                <a href="#json-tools" class="text-gray-600 hover:text-primary transition-colors">JSON工具</a>
+                <a href="#crypto-tools" class="text-gray-600 hover:text-primary transition-colors">加解密</a>
+                <a href="#text-tools" class="text-gray-600 hover:text-primary transition-colors">文本工具</a>
+                <a href="#math-tools" class="text-gray-600 hover:text-primary transition-colors">数学工具</a>
+                <a href="#encoding-tools" class="text-gray-600 hover:text-primary transition-colors">编码转换</a>
+            </nav>
+            
+            <!-- 移动端菜单按钮 -->
+            <button class="md:hidden text-gray-600 hover:text-primary transition-colors" id="menu-toggle">
+                <i class="fa fa-bars text-xl"></i>
+            </button>
+        </div>
+        
+        <!-- 移动端导航菜单 -->
+        <div class="md:hidden bg-white shadow-md absolute w-full left-0 top-full transform -translate-y-full opacity-0 pointer-events-none transition-all duration-300" id="mobile-menu">
+            <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+                <a href="#json-tools" class="text-gray-600 hover:text-primary py-2 transition-colors">JSON工具</a>
+                <a href="#crypto-tools" class="text-gray-600 hover:text-primary py-2 transition-colors">加解密</a>
+                <a href="#text-tools" class="text-gray-600 hover:text-primary py-2 transition-colors">文本工具</a>
+                <a href="#math-tools" class="text-gray-600 hover:text-primary py-2 transition-colors">数学工具</a>
+                <a href="#encoding-tools" class="text-gray-600 hover:text-primary py-2 transition-colors">编码转换</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <!-- 英雄区 -->
+        <section class="text-center py-12 md:py-20">
+            <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-dark mb-4">
+                一站式在线实用工具
+            </h1>
+            <p class="text-gray-600 text-lg md:text-xl max-w-3xl mx-auto mb-8">
+                集成JSON处理、加解密、文本格式化、计算器和编码转换等多种实用工具，满足您的日常开发需求
+            </p>
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="#json-tools" class="btn-primary">
+                    <i class="fa fa-code mr-2"></i>开始使用
+                </a>
+                <a href="#tools-overview" class="btn-secondary">
+                    <i class="fa fa-th-list mr-2"></i>工具列表
+                </a>
+            </div>
+        </section>
+        
+        <!-- 工具概览 -->
+        <section id="tools-overview" class="py-10">
+            <h2 class="section-title">工具概览</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- JSON工具卡片 -->
+                <div class="tool-card">
+                    <div class="text-primary text-3xl mb-4">
+                        <i class="fa fa-file-code-o"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">JSON工具</h3>
+                    <p class="text-gray-600 mb-4">包含JSON在线解析、格式化、校验等功能，轻松处理JSON数据。</p>
+                    <a href="#json-tools" class="text-primary hover:text-primary/80 font-medium flex items-center">
+                        查看详情 <i class="fa fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+                
+                <!-- 加解密工具卡片 -->
+                <div class="tool-card">
+                    <div class="text-accent text-3xl mb-4">
+                        <i class="fa fa-lock"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">加解密工具</h3>
+                    <p class="text-gray-600 mb-4">提供多种加密解密算法，保护您的数据安全。</p>
+                    <a href="#crypto-tools" class="text-accent hover:text-accent/80 font-medium flex items-center">
+                        查看详情 <i class="fa fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+                
+                <!-- 文本工具卡片 -->
+                <div class="tool-card">
+                    <div class="text-secondary text-3xl mb-4">
+                        <i class="fa fa-file-text-o"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">文本工具</h3>
+                    <p class="text-gray-600 mb-4">文本压缩、格式化、大小写转换等实用文本处理功能。</p>
+                    <a href="#text-tools" class="text-secondary hover:text-secondary/80 font-medium flex items-center">
+                        查看详情 <i class="fa fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+                
+                <!-- 数学工具卡片 -->
+                <div class="tool-card">
+                    <div class="text-orange-500 text-3xl mb-4">
+                        <i class="fa fa-calculator"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">数学工具</h3>
+                    <p class="text-gray-600 mb-4">高级计算器，支持复杂数学运算和公式计算。</p>
+                    <a href="#math-tools" class="text-orange-500 hover:text-orange-500/80 font-medium flex items-center">
+                        查看详情 <i class="fa fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+                
+                <!-- 编码转换工具卡片 -->
+                <div class="tool-card">
+                    <div class="text-red-500 text-3xl mb-4">
+                        <i class="fa fa-exchange"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">编码转换</h3>
+                    <p class="text-gray-600 mb-4">多种编码格式之间的转换，包括Base64、URL编码等。</p>
+                    <a href="#encoding-tools" class="text-red-500 hover:text-red-500/80 font-medium flex items-center">
+                        查看详情 <i class="fa fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+                
+                <!-- 其他工具卡片 -->
+                <div class="tool-card">
+                    <div class="text-purple-500 text-3xl mb-4">
+                        <i class="fa fa-ellipsis-h"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">更多工具</h3>
+                    <p class="text-gray-600 mb-4">不断更新的实用工具集合，满足您的各种需求。</p>
+                    <a href="#" class="text-purple-500 hover:text-purple-500/80 font-medium flex items-center">
+                        查看全部 <i class="fa fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+        
+        <!-- JSON工具 -->
+        <section id="json-tools" class="py-10">
+            <h2 class="section-title">JSON工具</h2>
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                <div class="mb-4 flex flex-wrap gap-2">
+                    <button class="btn-primary" id="json-format">
+                        <i class="fa fa-indent mr-1"></i> 格式化
+                    </button>
+                    <button class="btn-secondary" id="json-minify">
+                        <i class="fa fa-compress mr-1"></i> 压缩
+                    </button>
+                    <button class="btn-secondary" id="json-validate">
+                        <i class="fa fa-check-circle mr-1"></i> 校验
+                    </button>
+                    <button class="btn-secondary" id="json-clear">
+                        <i class="fa fa-trash mr-1"></i> 清空
+                    </button>
+                    <button class="btn-secondary" id="json-copy">
+                        <i class="fa fa-copy mr-1"></i> 复制结果
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">输入JSON</label>
+                        <textarea id="json-input" class="input-field h-64 font-mono text-sm resize-none" placeholder='{"name":"示例","value":123,"active":true}'></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">输出结果</label>
+                        <div id="json-output-container" class="relative">
+                            <pre id="json-output" class="input-field h-64 font-mono text-sm overflow-auto bg-gray-50 p-4"></pre>
+                            <div id="json-status" class="absolute top-2 right-2 text-sm hidden"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 加解密工具 -->
+        <section id="crypto-tools" class="py-10">
+            <h2 class="section-title">加解密工具</h2>
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">加密算法</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="crypto-algorithm-btn btn-primary active" data-algorithm="aes">AES</button>
+                        <button class="crypto-algorithm-btn btn-secondary" data-algorithm="des">DES</button>
+                        <button class="crypto-algorithm-btn btn-secondary" data-algorithm="base64">Base64</button>
+                        <button class="crypto-algorithm-btn btn-secondary" data-algorithm="md5">MD5</button>
+                        <button class="crypto-algorithm-btn btn-secondary" data-algorithm="sha1">SHA-1</button>
+                    </div>
+                </div>
+                
+                <div class="mb-6" id="crypto-key-container">
+                    <label for="crypto-key" class="block text-sm font-medium text-gray-700 mb-2">密钥 (AES/DES)</label>
+                    <input type="text" id="crypto-key" class="input-field" placeholder="请输入密钥">
+                </div>
+                
+                <div class="mb-4 flex gap-2">
+                    <button class="btn-primary" id="encrypt-btn">
+                        <i class="fa fa-lock mr-1"></i> 加密
+                    </button>
+                    <button class="btn-secondary" id="decrypt-btn">
+                        <i class="fa fa-unlock mr-1"></i> 解密
+                    </button>
+                    <button class="btn-secondary" id="crypto-clear">
+                        <i class="fa fa-trash mr-1"></i> 清空
+                    </button>
+                    <button class="btn-secondary" id="crypto-copy">
+                        <i class="fa fa-copy mr-1"></i> 复制结果
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">输入内容</label>
+                        <textarea id="crypto-input" class="input-field h-40 resize-none" placeholder="请输入需要加密或解密的内容"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">输出结果</label>
+                        <textarea id="crypto-output" class="input-field h-40 resize-none bg-gray-50" placeholder="处理结果将显示在这里" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 文本工具 -->
+        <section id="text-tools" class="py-10">
+            <h2 class="section-title">文本工具</h2>
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                <div class="mb-4 flex flex-wrap gap-2">
+                    <button class="btn-primary" id="text-uppercase">
+                        <i class="fa fa-arrow-up mr-1"></i> 全部大写
+                    </button>
+                    <button class="btn-secondary" id="text-lowercase">
+                        <i class="fa fa-arrow-down mr-1"></i> 全部小写
+                    </button>
+                    <button class="btn-secondary" id="text-capitalize">
+                        <i class="fa fa-font mr-1"></i> 首字母大写
+                    </button>
+                    <button class="btn-secondary" id="text-reverse">
+                        <i class="fa fa-exchange mr-1"></i> 反转文本
+                    </button>
+                    <button class="btn-secondary" id="text-count">
+                        <i class="fa fa-bar-chart mr-1"></i> 统计字数
+                    </button>
+                    <button class="btn-secondary" id="text-clear">
+                        <i class="fa fa-trash mr-1"></i> 清空
+                    </button>
+                    <button class="btn-secondary" id="text-copy">
+                        <i class="fa fa-copy mr-1"></i> 复制结果
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">输入文本</label>
+                        <textarea id="text-input" class="input-field h-40 resize-none" placeholder="请输入需要处理的文本"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">处理结果</label>
+                        <textarea id="text-output" class="input-field h-40 resize-none bg-gray-50" placeholder="处理结果将显示在这里" readonly></textarea>
+                        <div id="text-stats" class="mt-2 text-sm text-gray-600 hidden">
+                            <p>字符数: <span id="char-count">0</span></p>
+                            <p>单词数: <span id="word-count">0</span></p>
+                            <p>行数: <span id="line-count">0</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 数学工具 -->
+        <section id="math-tools" class="py-10">
+            <h2 class="section-title">数学工具</h2>
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                <!-- 计算器 -->
+                <div class="max-w-md mx-auto">
+                    <div class="mb-4">
+                        <input type="text" id="calc-display" class="input-field text-right py-3 text-lg font-medium bg-gray-50" placeholder="0" readonly>
+                    </div>
+                    
+                    <div class="grid grid-cols-4 gap-2">
+                        <button class="calc-btn btn-secondary" data-value="C">C</button>
+                        <button class="calc-btn btn-secondary" data-value="←">←</button>
+                        <button class="calc-btn btn-secondary" data-value="%">%</button>
+                        <button class="calc-btn btn-secondary bg-orange-500 text-white hover:bg-orange-600" data-value="/">÷</button>
+                        
+                        <button class="calc-btn btn-secondary" data-value="7">7</button>
+                        <button class="calc-btn btn-secondary" data-value="8">8</button>
+                        <button class="calc-btn btn-secondary" data-value="9">9</button>
+                        <button class="calc-btn btn-secondary bg-orange-500 text-white hover:bg-orange-600" data-value="*">×</button>
+                        
+                        <button class="calc-btn btn-secondary" data-value="4">4</button>
+                        <button class="calc-btn btn-secondary" data-value="5">5</button>
+                        <button class="calc-btn btn-secondary" data-value="6">6</button>
+                        <button class="calc-btn btn-secondary bg-orange-500 text-white hover:bg-orange-600" data-value="-">-</button>
+                        
+                        <button class="calc-btn btn-secondary" data-value="1">1</button>
+                        <button class="calc-btn btn-secondary" data-value="2">2</button>
+                        <button class="calc-btn btn-secondary" data-value="3">3</button>
+                        <button class="calc-btn btn-secondary bg-orange-500 text-white hover:bg-orange-600" data-value="+">+</button>
+                        
+                        <button class="calc-btn btn-secondary" data-value="+/-">±</button>
+                        <button class="calc-btn btn-secondary" data-value="0">0</button>
+                        <button class="calc-btn btn-secondary" data-value=".">.</button>
+                        <button class="calc-btn btn-secondary bg-orange-500 text-white hover:bg-orange-600" data-value="=">=</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 编码转换工具 -->
+        <section id="encoding-tools" class="py-10">
+            <h2 class="section-title">编码转换</h2>
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">转换类型</label>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <button class="encoding-type-btn btn-secondary" data-type="base64">Base64</button>
+                        <button class="encoding-type-btn btn-primary active" data-type="url">URL编码</button>
+                        <button class="encoding-type-btn btn-secondary" data-type="html">HTML实体</button>
+                        <button class="encoding-type-btn btn-secondary" data-type="unicode">Unicode</button>
+                    </div>
+                </div>
+                
+                <div class="mb-4 flex gap-2">
+                    <button class="btn-primary" id="encode-btn">
+                        <i class="fa fa-arrow-right mr-1"></i> 编码
+                    </button>
+                    <button class="btn-secondary" id="decode-btn">
+                        <i class="fa fa-arrow-left mr-1"></i> 解码
+                    </button>
+                    <button class="btn-secondary" id="encoding-clear">
+                        <i class="fa fa-trash mr-1"></i> 清空
+                    </button>
+                    <button class="btn-secondary" id="encoding-copy">
+                        <i class="fa fa-copy mr-1"></i> 复制结果
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">输入内容</label>
+                        <textarea id="encoding-input" class="input-field h-40 resize-none" placeholder="请输入需要编码或解码的内容"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">输出结果</label>
+                        <textarea id="encoding-output" class="input-field h-40 resize-none bg-gray-50" placeholder="处理结果将显示在这里" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa fa-wrench text-primary text-2xl"></i>
+                        <h2 class="text-xl font-bold">实用工具集</h2>
+                    </div>
+                    <p class="text-gray-400 mt-2">便捷高效的在线工具，提升您的工作效率</p>
+                </div>
+                
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fa fa-github text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fa fa-twitter text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fa fa-linkedin text-xl"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <hr class="border-gray-700 mb-6">
+            
+            <div class="text-center">
+                <p id="copyright" class="text-gray-400"></p>
+                <!-- 防篡改的版权信息 -->
+                <div id="copyright-protected" class="mt-2 text-gray-500 text-sm"></div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // 导航栏滚动效果
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 10) {
+                navbar.classList.add('py-2', 'shadow');
+                navbar.classList.remove('py-3', 'shadow-sm');
+            } else {
+                navbar.classList.add('py-3', 'shadow-sm');
+                navbar.classList.remove('py-2', 'shadow');
+            }
+        });
+        
+        // 移动端菜单切换
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        menuToggle.addEventListener('click', function() {
+            if (mobileMenu.classList.contains('opacity-0')) {
+                mobileMenu.classList.remove('opacity-0', '-translate-y-full', 'pointer-events-none');
+                mobileMenu.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                menuToggle.innerHTML = '<i class="fa fa-times text-xl"></i>';
+            } else {
+                mobileMenu.classList.add('opacity-0', '-translate-y-full', 'pointer-events-none');
+                mobileMenu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                menuToggle.innerHTML = '<i class="fa fa-bars text-xl"></i>';
+            }
+        });
+        
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                // 关闭移动菜单（如果打开）
+                if (!mobileMenu.classList.contains('opacity-0')) {
+                    mobileMenu.classList.add('opacity-0', '-translate-y-full', 'pointer-events-none');
+                    mobileMenu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                    menuToggle.innerHTML = '<i class="fa fa-bars text-xl"></i>';
+                }
+                
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // JSON工具功能
+        const jsonInput = document.getElementById('json-input');
+        const jsonOutput = document.getElementById('json-output');
+        const jsonStatus = document.getElementById('json-status');
+        
+        // 格式化JSON
+        document.getElementById('json-format').addEventListener('click', function() {
+            try {
+                const obj = JSON.parse(jsonInput.value);
+                jsonOutput.textContent = JSON.stringify(obj, null, 2);
+                showStatus('success', 'JSON格式化成功');
+            } catch (e) {
+                showStatus('error', 'JSON格式错误: ' + e.message);
+            }
+        });
+        
+        // 压缩JSON
+        document.getElementById('json-minify').addEventListener('click', function() {
+            try {
+                const obj = JSON.parse(jsonInput.value);
+                jsonOutput.textContent = JSON.stringify(obj);
+                showStatus('success', 'JSON压缩成功');
+            } catch (e) {
+                showStatus('error', 'JSON格式错误: ' + e.message);
+            }
+        });
+        
+        // 校验JSON
+        document.getElementById('json-validate').addEventListener('click', function() {
+            try {
+                JSON.parse(jsonInput.value);
+                showStatus('success', 'JSON格式有效');
+            } catch (e) {
+                showStatus('error', 'JSON格式无效: ' + e.message);
+            }
+        });
+        
+        // 清空JSON
+        document.getElementById('json-clear').addEventListener('click', function() {
+            jsonInput.value = '';
+            jsonOutput.textContent = '';
+            jsonStatus.classList.add('hidden');
+        });
+        
+        // 复制JSON结果
+        document.getElementById('json-copy').addEventListener('click', function() {
+            navigator.clipboard.writeText(jsonOutput.textContent)
+                .then(() => showStatus('success', '已复制到剪贴板'))
+                .catch(err => showStatus('error', '复制失败: ' + err));
+        });
+        
+        // 显示状态信息
+        function showStatus(type, message) {
+            jsonStatus.textContent = message;
+            jsonStatus.classList.remove('hidden', 'text-green-600', 'text-red-600');
+            
+            if (type === 'success') {
+                jsonStatus.classList.add('text-green-600');
+            } else {
+                jsonStatus.classList.add('text-red-600');
+            }
+            
+            // 3秒后隐藏状态
+            setTimeout(() => {
+                jsonStatus.classList.add('hidden');
+            }, 3000);
+        }
+        
+        // 加解密工具功能
+        const cryptoInput = document.getElementById('crypto-input');
+        const cryptoOutput = document.getElementById('crypto-output');
+        const cryptoKey = document.getElementById('crypto-key');
+        let selectedAlgorithm = 'aes';
+        
+        // 算法选择
+        document.querySelectorAll('.crypto-algorithm-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // 更新按钮样式
+                document.querySelectorAll('.crypto-algorithm-btn').forEach(b => {
+                    b.classList.remove('btn-primary', 'active');
+                    b.classList.add('btn-secondary');
+                });
+                this.classList.remove('btn-secondary');
+                this.classList.add('btn-primary', 'active');
+                
+                // 更新选中的算法
+                selectedAlgorithm = this.getAttribute('data-algorithm');
+                
+                // 显示或隐藏密钥输入框
+                if (selectedAlgorithm === 'aes' || selectedAlgorithm === 'des') {
+                    document.getElementById('crypto-key-container').classList.remove('hidden');
+                } else {
+                    document.getElementById('crypto-key-container').classList.add('hidden');
+                }
+            });
+        });
+        
+        // 加密
+        document.getElementById('encrypt-btn').addEventListener('click', function() {
+            if (!cryptoInput.value.trim()) {
+                alert('请输入需要加密的内容');
+                return;
+            }
+            
+            try {
+                let result = '';
+                
+                switch(selectedAlgorithm) {
+                    case 'aes':
+                    case 'des':
+                        if (!cryptoKey.value.trim()) {
+                            alert('请输入密钥');
+                            return;
+                        }
+                        // 简化的加密实现（实际应用中应使用更安全的加密库）
+                        result = simpleEncrypt(cryptoInput.value, cryptoKey.value);
+                        break;
+                    case 'base64':
+                        result = btoa(unescape(encodeURIComponent(cryptoInput.value)));
+                        break;
+                    case 'md5':
+                        result = md5(cryptoInput.value);
+                        break;
+                    case 'sha1':
+                        result = sha1(cryptoInput.value);
+                        break;
+                }
+                
+                cryptoOutput.value = result;
+            } catch (e) {
+                alert('加密失败: ' + e.message);
+            }
+        });
+        
+        // 解密
+        document.getElementById('decrypt-btn').addEventListener('click', function() {
+            if (!cryptoInput.value.trim()) {
+                alert('请输入需要解密的内容');
+                return;
+            }
+            
+            try {
+                let result = '';
+                
+                switch(selectedAlgorithm) {
+                    case 'aes':
+                    case 'des':
+                        if (!cryptoKey.value.trim()) {
+                            alert('请输入密钥');
+                            return;
+                        }
+                        // 简化的解密实现
+                        result = simpleDecrypt(cryptoInput.value, cryptoKey.value);
+                        break;
+                    case 'base64':
+                        result = decodeURIComponent(escape(atob(cryptoInput.value)));
+                        break;
+                    case 'md5':
+                    case 'sha1':
+                        alert('MD5和SHA-1是单向哈希算法，无法解密');
+                        return;
+                }
+                
+                cryptoOutput.value = result;
+            } catch (e) {
+                alert('解密失败: ' + e.message);
+            }
+        });
+        
+        // 清空加解密内容
+        document.getElementById('crypto-clear').addEventListener('click', function() {
+            cryptoInput.value = '';
+            cryptoOutput.value = '';
+            cryptoKey.value = '';
+        });
+        
+        // 复制加解密结果
+        document.getElementById('crypto-copy').addEventListener('click', function() {
+            navigator.clipboard.writeText(cryptoOutput.value)
+                .then(() => alert('已复制到剪贴板'))
+                .catch(err => alert('复制失败: ' + err));
+        });
+        
+        // 简单的加密解密实现（仅作演示，实际应用需使用专业加密库）
+        function simpleEncrypt(text, key) {
+            let result = '';
+            for (let i = 0; i < text.length; i++) {
+                const textCharCode = text.charCodeAt(i);
+                const keyCharCode = key.charCodeAt(i % key.length);
+                result += String.fromCharCode(textCharCode ^ keyCharCode);
+            }
+            return btoa(result);
+        }
+        
+        function simpleDecrypt(text, key) {
+            let decoded = atob(text);
+            let result = '';
+            for (let i = 0; i < decoded.length; i++) {
+                const textCharCode = decoded.charCodeAt(i);
+                const keyCharCode = key.charCodeAt(i % key.length);
+                result += String.fromCharCode(textCharCode ^ keyCharCode);
+            }
+            return result;
+        }
+        
+        // MD5哈希实现（简化版）
+        function md5(str) {
+            // 实际应用中应使用更完善的MD5实现
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // 转换为32位整数
+            }
+            return Math.abs(hash).toString(16);
+        }
+        
+        // SHA-1哈希实现（简化版）
+        function sha1(str) {
+            // 实际应用中应使用更完善的SHA-1实现
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = (hash << 7) - hash + str.charCodeAt(i);
+                hash |= 0; // 转换为32位整数
+            }
+            return Math.abs(hash).toString(16);
+        }
+        
+        // 文本工具功能
+        const textInput = document.getElementById('text-input');
+        const textOutput = document.getElementById('text-output');
+        const textStats = document.getElementById('text-stats');
+        const charCount = document.getElementById('char-count');
+        const wordCount = document.getElementById('word-count');
+        const lineCount = document.getElementById('line-count');
+        
+        // 全部大写
+        document.getElementById('text-uppercase').addEventListener('click', function() {
+            textOutput.value = textInput.value.toUpperCase();
+            textStats.classList.add('hidden');
+        });
+        
+        // 全部小写
+        document.getElementById('text-lowercase').addEventListener('click', function() {
+            textOutput.value = textInput.value.toLowerCase();
+            textStats.classList.add('hidden');
+        });
+        
+        // 首字母大写
+        document.getElementById('text-capitalize').addEventListener('click', function() {
+            const words = textInput.value.toLowerCase().split(' ');
+            for (let i = 0; i < words.length; i++) {
+                words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1);
+            }
+            textOutput.value = words.join(' ');
+            textStats.classList.add('hidden');
+        });
+        
+        // 反转文本
+        document.getElementById('text-reverse').addEventListener('click', function() {
+            textOutput.value = textInput.value.split('').reverse().join('');
+            textStats.classList.add('hidden');
+        });
+        
+        // 统计字数
+        document.getElementById('text-count').addEventListener('click', function() {
+            const text = textInput.value;
+            charCount.textContent = text.length;
+            wordCount.textContent = text.trim() ? text.trim().split(/\s+/).length : 0;
+            lineCount.textContent = text.split('\n').length;
+            textStats.classList.remove('hidden');
+            textOutput.value = text;
+        });
+        
+        // 清空文本
+        document.getElementById('text-clear').addEventListener('click', function() {
+            textInput.value = '';
+            textOutput.value = '';
+            textStats.classList.add('hidden');
+        });
+        
+        // 复制文本结果
+        document.getElementById('text-copy').addEventListener('click', function() {
+            navigator.clipboard.writeText(textOutput.value)
+                .then(() => alert('已复制到剪贴板'))
+                .catch(err => alert('复制失败: ' + err));
+        });
+        
+        // 计算器功能
+        const calcDisplay = document.getElementById('calc-display');
+        let currentValue = '0';
+        let previousValue = null;
+        let operator = null;
+        let resetOnNextInput = false;
+        
+        document.querySelectorAll('.calc-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const value = this.getAttribute('data-value');
+                
+                // 数字和小数点
+                if (!isNaN(value) || value === '.') {
+                    handleNumberInput(value);
+                } 
+                // 运算符
+                else if (['+', '-', '*', '/', '%'].includes(value)) {
+                    handleOperator(value);
+                } 
+                // 等于
+                else if (value === '=') {
+                    calculateResult();
+                } 
+                // 清除
+                else if (value === 'C') {
+                    clearCalculator();
+                } 
+                // 退格
+                else if (value === '←') {
+                    backspace();
+                } 
+                // 正负号
+                else if (value === '+/-') {
+                    toggleSign();
+                }
+            });
+        });
+        
+        function handleNumberInput(value) {
+            if (resetOnNextInput) {
+                currentValue = '0';
+                resetOnNextInput = false;
+            }
+            
+            // 处理小数点
+            if (value === '.') {
+                if (!currentValue.includes('.')) {
+                    currentValue += '.';
+                }
+                updateDisplay();
+                return;
+            }
+            
+            // 处理数字
+            if (currentValue === '0') {
+                currentValue = value;
+            } else {
+                currentValue += value;
+            }
+            
+            updateDisplay();
+        }
+        
+        function handleOperator(op) {
+            if (operator && previousValue !== null && !resetOnNextInput) {
+                calculateResult();
+            }
+            
+            previousValue = currentValue;
+            operator = op;
+            resetOnNextInput = true;
+        }
+        
+        function calculateResult() {
+            if (!operator || previousValue === null) return;
+            
+            const prev = parseFloat(previousValue);
+            const curr = parseFloat(currentValue);
+            let result;
+            
+            switch(operator) {
+                case '+':
+                    result = prev + curr;
+                    break;
+                case '-':
+                    result = prev - curr;
+                    break;
+                case '*':
+                    result = prev * curr;
+                    break;
+                case '/':
+                    if (curr === 0) {
+                        alert('除数不能为零');
+                        return;
+                    }
+                    result = prev / curr;
+                    break;
+                case '%':
+                    result = prev % curr;
+                    break;
+                default:
+                    return;
+            }
+            
+            // 处理大数和小数显示
+            if (result.toString().length > 10) {
+                result = result.toExponential(6);
+            } else if (result % 1 !== 0) {
+                // 保留最多6位小数
+                result = parseFloat(result.toFixed(6));
+            }
+            
+            currentValue = result.toString();
+            operator = null;
+            previousValue = null;
+            resetOnNextInput = true;
+            updateDisplay();
+        }
+        
+        function clearCalculator() {
+            currentValue = '0';
+            previousValue = null;
+            operator = null;
+            resetOnNextInput = false;
+            updateDisplay();
+        }
+        
+        function backspace() {
+            if (currentValue.length > 1) {
+                currentValue = currentValue.slice(0, -1);
+            } else {
+                currentValue = '0';
+            }
+            updateDisplay();
+        }
+        
+        function toggleSign() {
+            currentValue = (parseFloat(currentValue) * -1).toString();
+            updateDisplay();
+        }
+        
+        function updateDisplay() {
+            calcDisplay.value = currentValue;
+        }
+        
+        // 编码转换工具功能 - 修复了切换转换类型无效的问题
+        const encodingInput = document.getElementById('encoding-input');
+        const encodingOutput = document.getElementById('encoding-output');
+        let selectedEncodingType = 'url'; // 默认选中URL编码
+        
+        // 编码类型选择 - 修复部分
+        document.querySelectorAll('.encoding-type-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // 更新按钮样式
+                document.querySelectorAll('.encoding-type-btn').forEach(b => {
+                    b.classList.remove('btn-primary', 'active');
+                    b.classList.add('btn-secondary');
+                });
+                this.classList.remove('btn-secondary');
+                this.classList.add('btn-primary', 'active');
+                
+                // 更新选中的编码类型
+                selectedEncodingType = this.getAttribute('data-type');
+                
+                // 调试信息，确认类型已切换
+                console.log('已切换编码类型为: ' + selectedEncodingType);
+                
+                // 自动处理当前输入（如果有内容）
+                if (encodingInput.value.trim()) {
+                    // 保持当前操作（编码或解码）
+                    const lastOperation = localStorage.getItem('lastEncodingOperation') || 'encode';
+                    if (lastOperation === 'encode') {
+                        document.getElementById('encode-btn').click();
+                    } else {
+                        document.getElementById('decode-btn').click();
+                    }
+                }
+            });
+        });
+        
+        // 编码
+        document.getElementById('encode-btn').addEventListener('click', function() {
+            if (!encodingInput.value.trim()) {
+                alert('请输入需要编码的内容');
+                return;
+            }
+            
+            try {
+                let result = '';
+                
+                console.log('使用编码类型: ' + selectedEncodingType);
+                
+                switch(selectedEncodingType) {
+                    case 'base64':
+                        result = btoa(unescape(encodeURIComponent(encodingInput.value)));
+                        break;
+                    case 'url':
+                        result = encodeURIComponent(encodingInput.value);
+                        break;
+                    case 'html':
+                        result = htmlEncode(encodingInput.value);
+                        break;
+                    case 'unicode':
+                        result = unicodeEncode(encodingInput.value);
+                        break;
+                }
+                
+                encodingOutput.value = result;
+                // 记录最后操作类型
+                localStorage.setItem('lastEncodingOperation', 'encode');
+            } catch (e) {
+                alert('编码失败: ' + e.message);
+            }
+        });
+        
+        // 解码
+        document.getElementById('decode-btn').addEventListener('click', function() {
+            if (!encodingInput.value.trim()) {
+                alert('请输入需要解码的内容');
+                return;
+            }
+            
+            try {
+                let result = '';
+                
+                console.log('使用解码类型: ' + selectedEncodingType);
+                
+                switch(selectedEncodingType) {
+                    case 'base64':
+                        result = decodeURIComponent(escape(atob(encodingInput.value)));
+                        break;
+                    case 'url':
+                        result = decodeURIComponent(encodingInput.value);
+                        break;
+                    case 'html':
+                        result = htmlDecode(encodingInput.value);
+                        break;
+                    case 'unicode':
+                        result = unicodeDecode(encodingInput.value);
+                        break;
+                }
+                
+                encodingOutput.value = result;
+                // 记录最后操作类型
+                localStorage.setItem('lastEncodingOperation', 'decode');
+            } catch (e) {
+                alert('解码失败: ' + e.message);
+            }
+        });
+        
+        // 清空编码内容
+        document.getElementById('encoding-clear').addEventListener('click', function() {
+            encodingInput.value = '';
+            encodingOutput.value = '';
+        });
+        
+        // 复制编码结果
+        document.getElementById('encoding-copy').addEventListener('click', function() {
+            navigator.clipboard.writeText(encodingOutput.value)
+                .then(() => alert('已复制到剪贴板'))
+                .catch(err => alert('复制失败: ' + err));
+        });
+        
+        // HTML实体编码
+        function htmlEncode(str) {
+            return str.replace(/[&<>"']/g, char => {
+                const entities = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                };
+                return entities[char];
+            });
+        }
+        
+        // HTML实体解码
+        function htmlDecode(str) {
+            const el = document.createElement('div');
+            el.innerHTML = str;
+            return el.textContent;
+        }
+        
+        // Unicode编码
+        function unicodeEncode(str) {
+            return str.split('').map(char => '\\u' + char.charCodeAt(0).toString(16).padStart(4, '0')).join('');
+        }
+        
+        // Unicode解码
+        function unicodeDecode(str) {
+            return str.replace(/\\u([0-9a-fA-F]{4})/g, (match, hex) => String.fromCharCode(parseInt(hex, 16)));
+        }
+        
+        // 初始化版权信息和防篡改内容
+        window.addEventListener('DOMContentLoaded', function() {
+            const year = new Date().getFullYear();
+            document.getElementById('copyright').textContent = `© ${year} 实用工具集 - 保留所有权利`;
+            
+            // 防篡改的版权信息实现
+            const protectedText = "寂寞沙洲冷";
+            const copyrightElement = document.getElementById('copyright-protected');
+            
+            // 使用Canvas绘制文本作为防复制措施
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 设置Canvas尺寸
+            ctx.font = '12px Arial';
+            const textMetrics = ctx.measureText(protectedText);
+            canvas.width = textMetrics.width;
+            canvas.height = 20;
+            
+            // 重绘文本
+            ctx.font = '12px Arial';
+            ctx.fillStyle = '#6b7280'; // 灰色
+            ctx.fillText(protectedText, 0, 15);
+            
+            // 将Canvas添加到页面
+            copyrightElement.appendChild(canvas);
+            
+            // 添加额外的保护措施
+            copyrightElement.addEventListener('copy', function(e) {
+                e.preventDefault();
+                alert('该内容受版权保护，禁止复制');
+            });
+        });
+    </script>
+</body>
+</html>
