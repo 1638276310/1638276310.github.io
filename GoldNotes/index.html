@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>我的记账本</title>
+<style>
+  :root{
+    --bg:#0b0e11; --panel:#12161c; --panel-2:#171c22; --text:#e7edf3; --muted:#9fb3c8;
+    --primary:#4c8bf5; --positive:#16a34a; --negative:#ef4444; --warn:#f59e0b;
+    --border:#243140; --shadow:0 6px 18px rgba(0,0,0,.25);
+    --tooltip-bg:rgba(20,24,33,.95); --tooltip-text:#e7edf3; --tooltip-border:#2b394a;
+  }
+  body.light{
+    --bg:#f5f7fb; --panel:#ffffff; --panel-2:#f2f5fb; --text:#0e1520; --muted:#5a6b7d;
+    --primary:#3b82f6; --positive:#16a34a; --negative:#ef4444; --warn:#d97706;
+    --border:#d8e0ea; --shadow:0 6px 18px rgba(0,0,0,.08);
+    --tooltip-bg:rgba(255,255,255,.98); --tooltip-text:#0e1520; --tooltip-border:#c7d2e0;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans",sans-serif;background:var(--bg);color:var(--text)}
+  a{color:var(--primary);text-decoration:none}
+  .container{max-width:1140px;margin:0 auto;padding:16px}
+  header.top{position:sticky;top:0;z-index:5;background:linear-gradient(180deg, rgba(11,14,17,0.95), rgba(11,14,17,0.75));backdrop-filter: blur(6px);}
+  body.light header.top{background:linear-gradient(180deg, rgba(245,247,251,.95), rgba(245,247,251,.75));}
+  .brand{display:flex;align-items:center;gap:10px;padding:12px 8px;flex-wrap:wrap}
+  .brand .logo{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,var(--primary),#7aa8ff)}
+  .brand h1{font-size:16px;margin:0}
+  nav.tabs{display:flex;gap:8px;flex-wrap:wrap;padding:0 8px 12px}
+  nav.tabs button{appearance:none;border:1px solid var(--border);background:var(--panel-2);color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer}
+  nav.tabs button.active{background:var(--primary);border-color:transparent}
+
+  .grid{display:grid;gap:14px}
+  .g-2{grid-template-columns:repeat(2,1fr)}
+  .g-3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:980px){.g-3{grid-template-columns:repeat(2,1fr)}.g-2{grid-template-columns:1fr}}
+  @media(max-width:640px){.g-3{grid-template-columns:1fr}}
+
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow)}
+  .card h3{margin:0 0 8px 0;font-size:16px}
+  .section{display:none}
+  .section.active{display:block}
+  .card .content{padding:14px}
+  .muted{color:var(--muted)}
+  .row{display:flex;gap:10px;align-items:center}
+  .space{flex:1}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:999px;background:var(--panel-2);border:1px solid var(--border);font-size:12px;color:var(--muted)}
+  .btn{appearance:none;border:1px solid var(--border);background:var(--panel-2);color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer}
+  .btn.primary{background:var(--primary);border-color:transparent}
+  .btn.warn{background:var(--warn);border-color:transparent}
+  .btn.ghost{background:transparent}
+  .btn.positive{background:var(--positive);border-color:transparent}
+  .btn.negative{background:var(--negative);border-color:transparent}
+  .btn:disabled{opacity:.6;cursor:not-allowed}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap}
+
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+  .field label{font-size:12px;color:var(--muted)}
+  .field input,.field select,.field textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--panel-2);color:var(--text)}
+  .field input[type="date"]{padding:8px 10px}
+
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left}
+  th{color:var(--muted);font-weight:600}
+  tr:hover td{background:rgba(0,0,0,.04)}
+  body.light tr:hover td{background:rgba(0,0,0,.03)}
+  .amount{font-variant-numeric:tabular-nums}
+  .amount.positive{color:var(--positive)}
+  .amount.negative{color:var(--negative)}
+
+  .kpi{display:flex;flex-direction:column;gap:4px}
+  .kpi .label{color:var(--muted);font-size:12px}
+  .kpi .value{font-size:20px;font-weight:700}
+  .progress{height:10px;background:var(--panel-2);border:1px solid var(--border);border-radius:999px;overflow:hidden}
+  .progress>i{display:block;height:100%;background:linear-gradient(90deg,var(--primary),#7aa8ff);width:0%}
+  .tag{padding:2px 6px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:var(--muted)}
+
+  footer{padding:24px 0;color:var(--muted);text-align:center}
+  .note{font-size:12px;color:var(--muted)}
+
+  .danger{border:1px dashed #6b1f1f;background:#1a0f10}
+  body.light .danger{border-color:#f1c0c0;background:#fff2f2}
+  canvas{width:100%;height:260px;display:block}
+
+  .drag-handle{cursor:grab; user-select:none; font-size:18px; opacity:.8}
+  tr.dragging{opacity:.6}
+  tr.drop-target{outline:2px dashed var(--primary)}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .legend .item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+  .legend .swatch{width:10px;height:10px;border-radius:2px}
+
+  .tooltip{position:fixed;z-index:20;display:none;pointer-events:none;min-width:140px;
+    background:var(--tooltip-bg); color:var(--tooltip-text); border:1px solid var(--tooltip-border);
+    padding:8px 10px; border-radius:10px; box-shadow:var(--shadow); font-size:12px}
+  .tooltip .title{font-weight:700;margin-bottom:4px}
+  .tooltip .row{display:flex;justify-content:space-between;gap:12px}
+
+  /* 编辑状态标记 */
+  .editing-badge{display:none;margin-left:8px}
+  .editing .editing-badge{display:inline-flex}
+</style>
+<style>
+  .badge-origin{ margin-left:8px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="container brand">
+    <div class="logo" aria-hidden="true"></div>
+     <h1>我的记账本</h1> <span class="pill badge-origin">寂寞沙洲冷 Q/V：1638276310</span>
+    <span class="pill" id="profilePill">🔐 ID: <b id="profileIdShow"></b></span>
+    <button class="btn" id="switchIdBtn" title="切换/新建 ID">切换ID</button>
+    <div class="space"></div>
+    <button class="btn" id="toggleThemeBtn" title="切换浅色/深色">🌓 主题</button>
+    <button class="btn" id="toggleMaskBtn" title="金额遮罩">🙈 金额遮罩</button>
+  </div>
+  <div class="container">
+    <nav class="tabs" id="tabs"></nav>
+  </div>
+</header>
+
+<main class="container">
+  <!-- 仪表盘 -->
+  <section id="sec-dashboard" class="section active">
+    <div class="grid g-3">
+      <div class="card"><div class="content kpi">
+        <span class="label">净资产（折算至基准）</span>
+        <span id="netWorth" class="value amount">--</span>
+        <span id="netWorthNote" class="note"></span>
+      </div></div>
+      <div class="card"><div class="content kpi">
+        <span class="label">本月收入（基准）</span>
+        <span id="monthIn" class="value amount negative">--</span>
+      </div></div>
+      <div class="card"><div class="content kpi">
+        <span class="label">本月支出（基准）</span>
+        <span id="monthOut" class="value amount positive">--</span>
+      </div></div>
+    </div>
+
+    <div class="grid g-2" style="margin-top:14px">
+      <div class="card"><div class="content">
+        <div class="row"><h3>账户概览</h3><div class="space"></div><span class="note">支持多币种，按基准折算</span></div>
+        <div id="accountCards" class="grid g-3"></div>
+        <div class="toolbar" style="margin-top:12px">
+          <button class="btn primary" data-nav="#sec-accounts">➕ 新建账户</button>
+          <button class="btn" data-nav="#sec-trans">✍️ 记一笔</button>
+        </div>
+      </div></div>
+
+      <div class="card"><div class="content">
+        <div class="row"><h3>资产结构（按账户）</h3><div class="space"></div><span class="note" id="acctDonutNote"></span></div>
+        <canvas id="acctDonut" height="260"></canvas>
+        <div class="legend" id="acctLegend"></div>
+      </div></div>
+    </div>
+
+    <div class="card" style="margin-top:14px"><div class="content">
+      <div class="row"><h3>最近交易</h3><div class="space"></div><span class="note">点击"编辑"可直接修改</span></div>
+      <table id="recentTxTable">
+        <thead><tr><th>日期</th><th>账户</th><th>分类/备注</th><th style="text-align:right">金额</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div></div>
+  </section>
+
+  <!-- 账户 -->
+  <section id="sec-accounts" class="section">
+    <div class="card"><div class="content">
+      <div class="row">
+        <h3>账户列表</h3>
+        <div class="space"></div>
+        <span class="note">按住左侧"⋮⋮"拖动行排序（仅当前 ID 生效）</span>
+        <button class="btn primary" id="btnAddAccount" style="margin-left:8px">新增账户</button>
+      </div>
+      <table id="accountsTable">
+        <thead><tr><th style="width:32px"></th><th>名称</th><th>类型</th><th>币种</th><th>计入净资产</th><th style="text-align:right">余额（本币）</th><th style="text-align:right">≈ 基准</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div></div>
+
+    <div class="card"><div class="content">
+      <h3>新建/编辑账户</h3>
+      <form id="accountForm" class="grid g-3">
+        <div class="field"><label>名称</label><input required id="acc_name" /></div>
+        <div class="field"><label>类型</label>
+          <select id="acc_type">
+            <option value="cash">现金</option>
+            <option value="bank">银行卡</option>
+            <option value="credit">信用卡</option>
+            <option value="investment">理财/投资</option>
+            <option value="loan">负债/贷款</option>
+            <option value="wallet">钱包/平台</option>
+            <option value="other">其他</option>
+          </select>
+        </div>
+        <div class="field"><label>币种</label>
+          <select id="acc_currency">
+            <option value="CNY">CNY</option>
+            <option value="HKD">HKD</option>
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+          </select>
+        </div>
+        <div class="field"><label>期初余额</label><input id="acc_opening" type="number" step="0.01" value="0" /></div>
+        <div class="field"><label>计入净资产</label>
+          <select id="acc_in_net">
+            <option value="true">是</option>
+            <option value="false">否</option>
+          </select>
+        </div>
+        <div class="field"><label>排序</label><input id="acc_sort" type="number" value="0" /></div>
+        <div class="row" style="grid-column:1/-1;gap:8px">
+          <input type="hidden" id="acc_id" />
+          <button class="btn primary" type="submit">保存账户</button>
+          <button class="btn" type="button" id="btnResetAccountForm">清空表单</button>
+        </div>
+      </form>
+    </div></div>
+  </section>
+
+  <!-- 交易 -->
+  <section id="sec-trans" class="section">
+    <div class="card"><div class="content">
+      <div class="row">
+        <h3>记一笔</h3>
+        <span class="pill editing-badge" id="txEditingPill">✏️ 正在编辑流水</span>
+        <div class="space"></div>
+        <span class="pill">快捷键：N</span>
+      </div>
+      <form id="txnForm" class="grid g-3">
+        <div class="field"><label>日期</label><input id="tx_date" type="date" required /></div>
+        <div class="field"><label>类型</label>
+          <select id="tx_type">
+            <option value="out">支出</option>
+            <option value="in">收入</option>
+            <option value="transfer">转账</option>
+          </select>
+        </div>
+        <div class="field"><label>来源/主账户</label><select id="tx_account"></select></div>
+        <div class="field transfer-only" style="display:none"><label>目标账户（转账）</label><select id="tx_target"></select></div>
+        <div class="field"><label>金额</label><input id="tx_amount" type="number" step="0.01" required /></div>
+        <div class="field non-transfer"><label>分类</label>
+          <select id="tx_category"></select>
+        </div>
+        <div class="field"><label>对方</label><input id="tx_payee" placeholder="商家/单位/朋友…" /></div>
+        <div class="field" style="grid-column:1/-1"><label>备注</label><input id="tx_memo" /></div>
+        <input type="hidden" id="tx_edit_id" />
+        <input type="hidden" id="tx_edit_peer_id" />
+        <input type="hidden" id="tx_edit_transfer" />
+        <div class="row" style="grid-column:1/-1;gap:8px">
+          <button class="btn primary" type="submit">保存</button>
+          <button class="btn" type="reset" id="btnResetTx">重置</button>
+          <button class="btn warn" type="button" id="btnCancelEditTx" style="display:none">取消编辑</button>
+        </div>
+      </form>
+    </div></div>
+
+    <div class="card"><div class="content">
+      <div class="row"><h3>流水</h3>
+        <div class="space"></div>
+        <div class="row">
+          <label class="muted">筛选：</label>
+          <select id="filter_account"></select>
+          <input id="filter_kw" placeholder="关键字/分类/对方" />
+          <button class="btn" id="btnClearFilter">清空</button>
+        </div>
+      </div>
+      <table id="txTable">
+        <thead><tr><th>日期</th><th>账户</th><th>类型</th><th>分类/对方</th><th>备注</th><th style="text-align:right">金额</th><th style="text-align:right">操作</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div></div>
+  </section>
+
+  <!-- 预算 -->
+  <section id="sec-budget" class="section">
+    <div class="card"><div class="content">
+      <div class="row"><h3>本月预算</h3><div class="space"></div><span class="muted" id="budgetMonthLabel"></span></div>
+      <div class="grid g-3" id="budgetGrid"></div>
+    </div></div>
+
+    <div class="card"><div class="content">
+      <div class="row">
+        <h3>设置预算</h3>
+        <span class="pill editing-badge" id="bdgEditingPill">✏️ 正在编辑预算</span>
+      </div>
+      <form id="budgetForm" class="grid g-3">
+        <div class="field"><label>分类</label><select id="bdg_category"></select></div>
+        <div class="field"><label>月预算金额（基准）</label><input id="bdg_amount" type="number" step="0.01" /></div>
+      <input type="hidden" id="bdg_edit_key"/>
+        <div class="row" style="grid-column:1/-1;gap:8px">
+          <button class="btn primary" type="submit">保存预算</button>
+          <button class="btn" type="reset" id="btnResetBudget">清空</button>
+          <button class="btn warn" type="button" id="btnCancelEditBudget" style="display:none">取消编辑</button>
+        </div>
+      </form>
+      <p class="note">在"本月预算"卡片上点击"编辑/删除"即可管理已设置的预算。</p>
+    </div></div>
+  </section>
+
+  <!-- 报表 -->
+  <section id="sec-reports" class="section">
+    <div class="card"><div class="content">
+      <div class="row"><h3>12 个月收支趋势（基准）</h3><div class="space"></div><span class="note" id="trendNote"></span></div>
+      <canvas id="lineChart" height="260"></canvas>
+    </div></div>
+
+    <div class="card"><div class="content">
+      <div class="row"><h3>本月支出分类占比（基准）</h3><div class="space"></div><span class="note" id="pieNote"></span></div>
+      <canvas id="pieChart" height="260"></canvas>
+    </div></div>
+  </section>
+
+  <!-- 设置 / 数据 -->
+  <section id="sec-settings" class="section">
+    <div class="card"><div class="content">
+      <h3>偏好设置（仅当前 ID 生效）</h3>
+      <form id="prefsForm" class="grid g-3">
+        <div class="field"><label>基准货币</label>
+          <select id="baseCurrency">
+            <option value="CNY">CNY (¥)</option>
+            <option value="HKD">HKD (HK$)</option>
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+          </select>
+          <span class="note">更改后请到下方"汇率管理"更新各币种兑基准的汇率。</span>
+        </div>
+        <div class="field"><label>金额遮罩</label>
+          <select id="maskAmounts">
+            <option value="false">关闭</option>
+            <option value="true">开启</option>
+          </select>
+        </div>
+        <div class="field"><label>主题</label>
+          <select id="themeSelect">
+            <option value="dark">深色</option>
+            <option value="light">浅色</option>
+          </select>
+        </div>
+        <div class="row" style="grid-column:1/-1;gap:8px">
+          <button class="btn primary" type="submit">保存设置</button>
+        </div>
+      </form>
+      <p class="note">提示：ID 切换按钮在顶部；每个 ID 的数据与设置互不影响。</p>
+    </div></div>
+
+    <div class="card"><div class="content">
+      <div class="row"><h3>汇率管理（1 外币 = ? 基准）</h3><div class="space"></div><span class="note">数据源：open.er-api.com（已自动方向转换）</span></div>
+      <table id="fxTable">
+        <thead><tr><th>外币</th><th style="text-align:right">汇率</th><th>更新时间</th><th style="text-align:right"></th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <form id="fxForm" class="grid g-3" style="margin-top:10px">
+        <div class="field"><label>外币（3 字母）</label><input id="fx_quote" placeholder="如 USD/HKD/EUR" maxlength="6" /></div>
+        <div class="field"><label>汇率（外币→基准）</label><input id="fx_rate" type="number" step="0.0001" placeholder="例如 USD→CNY 写 7.12" /></div>
+        <div class="row" style="grid-column:1/-1;gap:8px">
+          <button class="btn primary" type="submit">保存/更新</button>
+          <button class="btn" type="button" id="fxReset">清空</button>
+        </div>
+      </form>
+      <div class="toolbar" style="margin-top:8px">
+        <button class="btn" id="fxFetchAccounts">根据账户币种联网更新</button>
+        <button class="btn" id="fxFetchAll">全量更新（常见币种）</button>
+      </div>
+    </div></div>
+<div class="card"><div class="content">
+      <div class="row">
+        <h3>数据导入 / 导出</h3>
+        <div class="space"></div>
+        <span class="note">仅作用于当前 ID：<b id="dataProfileId"></b></span>
+      </div>
+      <div class="toolbar" style="margin-top:8px">
+        <button class="btn" id="btnExportData">导出 JSON</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none" />
+        <button class="btn" id="btnImportData">导入 JSON</button>
+        <button class="btn negative" id="btnClearCurrentData">清空当前 ID 数据</button>
+      </div>
+      <p class="note">导入为"合并导入"，同 ID 记录将被覆盖。操作前建议先导出备份。</p>
+    </div></div>
+
+
+    <div class="card danger"><div class="content">
+      <strong>⚠️ 提示</strong>
+      <p class="note">本版本新增：交易流水可编辑；预算可编辑/删除。顶部点击"切换ID"管理多账户空间。</p>
+    </div></div>
+  </section>
+</main>
+
+<footer class="container">寂寞沙洲冷 Q/V：1638276310</footer>
+
+<div id="tooltip" class="tooltip"></div>
+
+<script>
+// ====== 工具 & Profile ======
+const $ = (sel,root=document)=>root.querySelector(sel);
+const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
+const uid = ()=>crypto.randomUUID();
+const todayStr = ()=>new Date().toISOString().slice(0,10);
+const ym = (d)=>{const x=new Date(d);return x.getFullYear()+"-"+(String(x.getMonth()+1).padStart(2,'0'))}
+const sameMonth = (a,b)=>ym(a)===ym(b);
+const getCurrentProfile = ()=> localStorage.getItem('ledger_profile') || 'default';
+const setCurrentProfile = (id)=>{ localStorage.setItem('ledger_profile', id || 'default'); };
+
+let mask = false;
+const CURRENCY_SYMBOLS={CNY:'¥',HKD:'HK$',USD:'$',EUR:'€'};
+const currencySymbol = c=>CURRENCY_SYMBOLS[c]||c+" ";
+function fmtAmount(v,cur){
+  if(v===undefined||v===null||Number.isNaN(v)) return '--';
+  const s = (Number(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));
+  return (mask? '****' : (currencySymbol(cur||state.prefs.baseCurrency)+s));
+}
+
+// ====== IndexedDB（v5 多 ID） ======
+const DB_NAME='ledger_v1';
+let db=null;
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open(DB_NAME,5);
+    req.onupgradeneeded=e=>{
+      const d=e.target.result; let s;
+      if(!d.objectStoreNames.contains('accounts')){
+        s=d.createObjectStore('accounts',{keyPath:'id'});
+      } else { s=e.target.transaction.objectStore('accounts'); }
+      try{s.createIndex('by_profile','profileId',{unique:false});}catch{}
+      try{s.createIndex('by_sort','sort',{unique:false});}catch{}
+      if(!d.objectStoreNames.contains('transactions')){
+        s=d.createObjectStore('transactions',{keyPath:'id'});
+      } else { s=e.target.transaction.objectStore('transactions'); }
+      try{s.createIndex('by_date','date',{unique:false});}catch{}
+      try{s.createIndex('by_account','accountId',{unique:false});}catch{}
+      try{s.createIndex('by_profile','profileId',{unique:false});}catch{}
+      if(d.objectStoreNames.contains('budgets')) d.deleteObjectStore('budgets');
+      s=d.createObjectStore('budgets',{keyPath:'key'});
+      try{s.createIndex('by_profile','profileId',{unique:false});}catch{}
+      if(!d.objectStoreNames.contains('prefs')){
+        d.createObjectStore('prefs',{keyPath:'key'});
+      }
+      if(d.objectStoreNames.contains('fxrates')) d.deleteObjectStore('fxrates');
+      s=d.createObjectStore('fxrates',{keyPath:'key'});
+      try{s.createIndex('by_profile','profileId',{unique:false});}catch{}
+    };
+    req.onsuccess=e=>{db=e.target.result;resolve(db)};
+    req.onerror=e=>reject(e.target.error);
+  });
+}
+function tx(storeNames,mode='readonly'){
+  const t=db.transaction(storeNames,mode); return storeNames.map(n=>t.objectStore(n));
+}
+const idb={
+  async getAll(store){return new Promise((res,rej)=>{const [s]=tx([store]);const r=s.getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});},
+  async put(store,val){return new Promise((res,rej)=>{const [s]=tx([store],'readwrite');const r=s.put(val);r.onsuccess=()=>res(true);r.onerror=()=>rej(r.error);});},
+  async del(store,key){return new Promise((res,rej)=>{const [s]=tx([store],'readwrite');const r=s.delete(key);r.onsuccess=()=>res(true);r.onerror=()=>rej(r.error);});},
+  async clear(store){return new Promise((res,rej)=>{const [s]=tx([store],'readwrite');const r=s.clear();r.onsuccess=()=>res(true);r.onerror=()=>rej(r.error);});},
+  async setPrefRaw(key,value){return idb.put('prefs',{key,value});},
+  async getPrefRaw(key){return new Promise((res,rej)=>{const [s]=tx(['prefs']);const r=s.get(key);r.onsuccess=()=>res(r.result? r.result.value:undefined);r.onerror=()=>rej(r.error);});}
+};
+const pkey = (k)=> `${state.profileId}::${k}`;
+
+// ====== 全局状态 ======
+const state={profileId:getCurrentProfile(), accounts:[], txs:[], budgets:{}, fxrates:{}, prefs:{baseCurrency:'CNY', maskAmounts:false, theme:'dark'}};
+
+// ====== 主题 / 偏好 ======
+function applyTheme(theme){
+  document.body.classList.toggle('light', theme==='light');
+  state.prefs.theme=theme;
+}
+async function savePrefs(){
+  await idb.setPrefRaw(pkey('baseCurrency'),state.prefs.baseCurrency);
+  await idb.setPrefRaw(pkey('maskAmounts'),state.prefs.maskAmounts);
+  await idb.setPrefRaw(pkey('theme'),state.prefs.theme);
+}
+
+// ====== 汇率工具 ======
+function rateToBase(currency){
+  if(!currency || currency===state.prefs.baseCurrency) return 1;
+  const q=(state.fxrates[currency]!==undefined)? Number(state.fxrates[currency]) : null;
+  return q && q>0 ? q : null;
+}
+function amountToBase(amount,currency){
+  if(currency===state.prefs.baseCurrency) return Number(amount)||0;
+  const r=rateToBase(currency); return r? (Number(amount)||0)*r : null;
+}
+async function fetchRatesOpenERAPI(base, quotes){
+  const url=`https://open.er-api.com/v6/latest/${encodeURIComponent(base)}`;
+  const resp=await fetch(url,{mode:'cors'});
+  if(!resp.ok) throw new Error('HTTP '+resp.status);
+  const data=await resp.json();
+  if(!data || !data.rates) throw new Error('响应格式异常');
+  const out={};
+  quotes.forEach(q=>{
+    const v = data.rates[q];
+    if(v!=null && v>0){
+      out[q] = 1 / v; // base->quote to quote->base
+    }
+  });
+  return out;
+}
+async function updateFxFromNetwork(quotes){
+  const base=state.prefs.baseCurrency;
+  try{
+    const rates=await fetchRatesOpenERAPI(base, quotes);
+    const updated=[];
+    for(const [q,r] of Object.entries(rates)){
+      const key=pkey(`fx:${q}`);
+      await idb.put('fxrates',{key,profileId:state.profileId,quote:q,rate:r,updatedAt:new Date().toISOString()});
+      state.fxrates[q]=r; updated.push(q);
+    }
+    renderAll();
+    alert(updated.length? ('汇率已更新（外币→基准）：'+updated.join(', ')) : '未获取到任何汇率');
+  }catch(e){
+    alert('联网获取失败：'+e.message);
+  }
+}
+
+// ====== 初始化 ======
+const TABS=[
+  {id:'dashboard',label:'仪表盘'},
+  {id:'accounts',label:'账户'},
+  {id:'trans',label:'交易'},
+  {id:'budget',label:'预算'},
+  {id:'reports',label:'报表'},
+  {id:'settings',label:'设置'}
+];
+function renderTabs(){
+  const nav=$('#tabs'); nav.innerHTML='';
+  TABS.forEach((t,i)=>{
+    const btn=document.createElement('button');
+    btn.className=''+(i===0?'active':'');
+    btn.textContent=t.label; btn.dataset.target='#sec-'+t.id;
+    btn.onclick=()=>{ $$('.section').forEach(s=>s.classList.remove('active')); $(btn.dataset.target).classList.add('active'); $$('#tabs button').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); if(t.id==='reports'){ renderReports(); } if(t.id==='dashboard'){ renderAcctDonut(); } };
+    nav.appendChild(btn);
+  });
+}
+async function boot(){
+  await openDB();
+  renderTabs();
+  bindEvents();
+  await loadProfile(state.profileId, true);
+  renderAll();
+}
+async function loadProfile(profileId, initSample=false){
+  state.profileId = profileId || 'default';
+  setCurrentProfile(state.profileId);
+  $('#profileIdShow').textContent = state.profileId;
+
+  const prefsBase=await idb.getPrefRaw(pkey('baseCurrency'));
+  const prefsMask=await idb.getPrefRaw(pkey('maskAmounts'));
+  const prefsTheme=await idb.getPrefRaw(pkey('theme'));
+  state.prefs.baseCurrency=prefsBase||'CNY';
+  state.prefs.maskAmounts=!!prefsMask;
+  state.prefs.theme=prefsTheme||'dark';
+  mask=state.prefs.maskAmounts;
+  applyTheme(state.prefs.theme);
+  $('#baseCurrency').value=state.prefs.baseCurrency;
+  $('#maskAmounts').value=String(state.prefs.maskAmounts);
+  $('#themeSelect').value=state.prefs.theme;
+
+  const allAcc=await idb.getAll('accounts');
+  const allTx =await idb.getAll('transactions');
+  const allBdg=await idb.getAll('budgets');
+  const allFx =await idb.getAll('fxrates');
+
+  state.accounts = allAcc.filter(a=>(a.profileId||'default')===state.profileId);
+  state.txs      = allTx .filter(t=>(t.profileId||'default')===state.profileId);
+  state.budgets  = {}; allBdg.filter(b=>b.profileId===state.profileId).forEach(b=>state.budgets[b.category]=Number(b.amount)||0);
+  state.fxrates  = {}; allFx .filter(r=>r.profileId===state.profileId).forEach(r=>state.fxrates[r.quote]=Number(r.rate)||0);
+
+  if(initSample && state.accounts.length===0 && state.profileId==='default'){
+    const a1={id:uid(),profileId:state.profileId,name:'现金',type:'cash',currency:state.prefs.baseCurrency,includeInNetWorth:true,openingBalance:200,createdAt:new Date().toISOString(),sort:0};
+    const a2={id:uid(),profileId:state.profileId,name:'银行卡',type:'bank',currency:state.prefs.baseCurrency,includeInNetWorth:true,openingBalance:1200,createdAt:new Date().toISOString(),sort:1};
+    const a3={id:uid(),profileId:state.profileId,name:'USD 活期',type:'bank',currency:'USD',includeInNetWorth:true,openingBalance:100,createdAt:new Date().toISOString(),sort:2};
+    await idb.put('accounts',a1);await idb.put('accounts',a2);await idb.put('accounts',a3);
+    state.accounts=[a1,a2,a3];
+    const t1={id:uid(),profileId:state.profileId,date:todayStr(),accountId:a2.id,side:'out',amount:35.8,category:'餐饮',payee:'咖啡',memo:'拿铁',createdAt:new Date().toISOString()};
+    await idb.put('transactions',t1); state.txs=[t1];
+    if(state.prefs.baseCurrency==='CNY'){
+      const key=pkey('fx:USD'); const sampleFx={key,profileId:state.profileId,quote:'USD',rate:7.10,updatedAt:new Date().toISOString()};
+      await idb.put('fxrates',sampleFx); state.fxrates['USD']=7.10;
+    }
+  }
+  const CATS=['餐饮','交通','居住','数码','娱乐','教育','医疗','日用','旅行','转账-入','转账-出','其他'];
+  $('#tx_category').innerHTML=CATS.filter(c=>!c.startsWith('转账')).map(c=>`<option value="${c}">${c}</option>`).join('');
+  $('#bdg_category').innerHTML=CATS.filter(c=>!c.startsWith('转账')).map(c=>`<option value="${c}">${c}</option>`).join('');
+}
+
+// ====== 事件绑定 ======
+function bindEvents(){
+  $$('[data-nav]').forEach(b=>b.onclick=()=>{ $$('.section').forEach(s=>s.classList.remove('active')); $(b.dataset.nav).classList.add('active'); $$('#tabs button').forEach(btn=>btn.classList.toggle('active', btn.dataset.target===b.dataset.nav)); if(b.dataset.nav==='#sec-reports'){ renderReports(); } if(b.dataset.nav==='#sec-dashboard'){ renderAcctDonut(); }});
+
+  $('#switchIdBtn').onclick=async ()=>{
+    const id=prompt('输入要切换/新建的 ID：', state.profileId);
+    if(id==null) return;
+    const rid=(id.trim()||'default').slice(0,40);
+    await loadProfile(rid);
+    renderAll();
+  };
+
+  $('#toggleMaskBtn').onclick=()=>{mask=!mask; renderAll(); $('#maskAmounts').value=String(mask); savePrefs();};
+  $('#toggleThemeBtn').onclick=()=>{ const next= state.prefs.theme==='dark' ? 'light':'dark'; applyTheme(next); $('#themeSelect').value=next; savePrefs(); };
+
+  $('#btnAddAccount').onclick=()=>{$('#accountForm').scrollIntoView({behavior:'smooth'});$('#acc_name').focus();};
+  $('#btnResetAccountForm').onclick=()=>resetAccountForm();
+  $('#accountForm').onsubmit=onSaveAccount;
+
+  $('#tx_type').onchange=()=>toggleTransferFields();
+  $('#txnForm').onsubmit=saveTransaction;
+  $('#btnResetTx').onclick=()=>endEditTx();
+  $('#btnCancelEditTx').onclick=()=>endEditTx();
+  document.addEventListener('keydown',e=>{if(e.key.toLowerCase()==='n'){ $('#tx_amount').focus(); $('#sec-trans').classList.add('active'); $$('#tabs button').forEach(btn=>btn.classList.toggle('active', btn.dataset.target==='#sec-trans')); }});
+
+  $('#btnClearFilter').onclick=()=>{ $('#filter_account').value=''; $('#filter_kw').value=''; renderTxTable(); };
+  $('#filter_account').onchange=renderTxTable; $('#filter_kw').oninput=renderTxTable;
+
+  $('#budgetForm').onsubmit=onSaveBudget;
+  $('#btnResetBudget').onclick=()=>endEditBudget();
+  $('#btnCancelEditBudget').onclick=()=>endEditBudget();
+
+  $('#prefsForm').onsubmit=onSavePrefs;
+
+  $('#fxForm').onsubmit=saveFxRate; $('#fxReset').onclick=()=>{$('#fx_quote').value=''; $('#fx_rate').value='';};
+  $('#fxFetchAccounts').onclick=async ()=>{
+    const base=state.prefs.baseCurrency;
+    const quotes=[...new Set(state.accounts.map(a=>a.currency).filter(c=>c!==base))];
+    if(quotes.length===0){ alert('没有需要更新的外币账户'); return; }
+    await updateFxFromNetwork(quotes);
+  };
+  $('#fxFetchAll').onclick=async ()=>{
+    const base=state.prefs.baseCurrency;
+    const COMMON=['USD','EUR','HKD','JPY','GBP','AUD','CAD','SGD','TWD','KRW'];
+    const quotes=COMMON.filter(c=>c!==base);
+    await updateFxFromNetwork(quotes);
+  };
+
+  window.addEventListener('resize',()=>{ if($('#sec-reports').classList.contains('active')) renderReports(); if($('#sec-dashboard').classList.contains('active')) renderAcctDonut(); });
+}
+
+function resetAccountForm(){ $('#accountForm').reset(); $('#acc_id').value=''; $('#acc_currency').value=state.prefs.baseCurrency; }
+async function onSaveAccount(e){e.preventDefault();
+  const id=$('#acc_id').value||uid();
+  const acc={
+    id, profileId:state.profileId,
+    name:$('#acc_name').value.trim()||'未命名',
+    type:$('#acc_type').value,
+    currency:$('#acc_currency').value,
+    includeInNetWorth:$('#acc_in_net').value==='true',
+    openingBalance:parseFloat($('#acc_opening').value)||0,
+    sort:parseInt($('#acc_sort').value||0),
+    createdAt:new Date().toISOString()
+  };
+  await idb.put('accounts',acc);
+  const idx=state.accounts.findIndex(a=>a.id===id);
+  if(idx>=0) state.accounts[idx]=acc; else state.accounts.push(acc);
+  resetAccountForm(); renderAll(); alert('账户已保存（ID：'+state.profileId+'）');
+}
+
+// ====== 交易：编辑/保存 ======
+function toggleTransferFields(){
+  const isT=$('#tx_type').value==='transfer' || $('#tx_edit_transfer').value==='1';
+  $$('.transfer-only').forEach(x=>x.style.display=isT?'block':'none');
+  $$('.non-transfer').forEach(x=>x.style.display=isT?'none':'block');
+  if($('#tx_edit_transfer').value==='1'){
+    // 编辑转账时，锁定类型选择
+    $('#tx_type').disabled=true;
+  }else{
+    $('#tx_type').disabled=false;
+  }
+}
+function startEditTx(t){
+  $('#sec-trans').classList.add('active');
+  $$('#tabs button').forEach(btn=>btn.classList.toggle('active', btn.dataset.target==='#sec-trans'));
+  document.getElementById('txnForm').classList.add('editing');
+  $('#txEditingPill').parentElement.classList.add('editing');
+  $('#txEditingPill').style.display='inline-flex';
+  $('#btnCancelEditTx').style.display='inline-block';
+
+  $('#tx_edit_id').value=t.id;
+  $('#tx_edit_peer_id').value=t.transferPeerId||'';
+  $('#tx_edit_transfer').value=t.isTransfer?'1':'';
+
+  $('#tx_date').value=t.date;
+  $('#tx_amount').value=String(t.amount);
+  $('#tx_payee').value=t.payee||'';
+  $('#tx_memo').value=t.memo||'';
+
+  if(t.isTransfer){
+    $('#tx_type').value='transfer';
+    $('#tx_account').value=t.side==='out'? t.accountId : (t.transferPeerId? state.txs.find(x=>x.id===t.transferPeerId)?.accountId : '');
+    const peer = t.side==='out'? (t.transferPeerId? state.txs.find(x=>x.id===t.transferPeerId) : null) : t;
+    $('#tx_target').value=peer? peer.accountId : '';
+  }else{
+    $('#tx_type').value=t.side==='in' ? 'in' : 'out';
+    $('#tx_account').value=t.accountId;
+    $('#tx_category').value=t.category||$('#tx_category').value;
+  }
+  toggleTransferFields();
+}
+function endEditTx(){
+  $('#tx_edit_id').value=''; $('#tx_edit_peer_id').value=''; $('#tx_edit_transfer').value='';
+  $('#txnForm').reset(); $('#tx_date').value=todayStr();
+  $('#tx_type').disabled=false;
+  document.getElementById('txnForm').classList.remove('editing');
+  $('#txEditingPill').parentElement.classList.remove('editing');
+  $('#txEditingPill').style.display='none';
+  $('#btnCancelEditTx').style.display='none';
+  toggleTransferFields();
+}
+async function saveTransaction(e){
+  e.preventDefault();
+  const isEditing = !!$('#tx_edit_id').value;
+  const editingIsTransfer = $('#tx_edit_transfer').value==='1';
+  const type=$('#tx_type').value;
+  const accId=$('#tx_account').value; if(!accId){alert('请选择账户'); return;}
+  const date=$('#tx_date').value||todayStr();
+  const amt=parseFloat($('#tx_amount').value); if(!(amt>0)){alert('请输入金额'); return;}
+  const payee=$('#tx_payee').value.trim(); const memo=$('#tx_memo').value.trim();
+
+  if(isEditing){
+    if(editingIsTransfer){
+      // 编辑已存在的转账：更新两条记录
+      const id1=$('#tx_edit_id').value;
+      const id2=$('#tx_edit_peer_id').value;
+      const t1=state.txs.find(x=>x.id===id1);
+      const t2=state.txs.find(x=>x.id===id2);
+      if(!t1 || !t2){ alert('找不到需要编辑的转账记录'); return; }
+      const out = t1.side==='out'? t1 : t2;
+      const inn = t1.side==='in' ? t1 : t2;
+      out.date=date; out.accountId=accId; out.amount=amt; out.payee=payee; out.memo=memo;
+      inn.date=date; inn.accountId=$('#tx_target').value; inn.amount=amt; inn.payee=payee; inn.memo=memo;
+      await idb.put('transactions',out); await idb.put('transactions',inn);
+      // 更新 state
+      const i1=state.txs.findIndex(x=>x.id===out.id); if(i1>=0) state.txs[i1]=out;
+      const i2=state.txs.findIndex(x=>x.id===inn.id); if(i2>=0) state.txs[i2]=inn;
+      endEditTx(); renderAll(); alert('转账已更新');
+      return;
+    }else{
+      // 编辑普通收支（允许 in/out 切换，不允许改为 transfer）
+      const id=$('#tx_edit_id').value;
+      const t=state.txs.find(x=>x.id===id);
+      if(!t){ alert('找不到需要编辑的记录'); return; }
+      if(type==='transfer'){ alert('正在编辑的记录不能改为"转账"。如需转账，请新建一条。'); return; }
+      t.date=date; t.accountId=accId; t.amount=amt; t.payee=payee; t.memo=memo; t.side=type; t.category=$('#tx_category').value;
+      await idb.put('transactions',t);
+      const idx=state.txs.findIndex(x=>x.id===id); if(idx>=0) state.txs[idx]=t;
+      endEditTx(); renderAll(); alert('流水已更新');
+      return;
+    }
+  }
+
+  // 新增
+  if(type==='transfer'){
+    const target=$('#tx_target').value; if(!target||target===accId){alert('请选择不同的目标账户'); return;}
+    const id1=uid(), id2=uid();
+    const tOut={id:id1,profileId:state.profileId,date,accountId:accId,side:'out',amount:amt,category:'转账-出',payee,memo,isTransfer:true,transferPeerId:id2,createdAt:new Date().toISOString()};
+    const tIn ={id:id2,profileId:state.profileId,date,accountId:target,side:'in', amount:amt,category:'转账-入',payee,memo,isTransfer:true,transferPeerId:id1,createdAt:new Date().toISOString()};
+    await idb.put('transactions',tOut); await idb.put('transactions',tIn);
+    state.txs.push(tOut,tIn);
+  } else {
+    const t={id:uid(),profileId:state.profileId,date,accountId:accId,side:type,amount:amt,category:$('#tx_category').value,payee,memo,isTransfer:false,createdAt:new Date().toISOString()};
+    await idb.put('transactions',t); state.txs.push(t);
+  }
+  $('#txnForm').reset(); $('#tx_date').value=todayStr(); renderAll(); alert('已保存');
+}
+
+// ====== 预算：编辑/保存/删除 ======
+async function onSaveBudget(e){ e.preventDefault();
+  const cat=$('#bdg_category').value; const amt=parseFloat($('#bdg_amount').value)||0;
+  const key=pkey('bdg:'+cat);
+  const rec={key, profileId:state.profileId, category:cat, amount:amt};
+  await idb.put('budgets',rec);
+  state.budgets[cat]=amt;
+  endEditBudget();
+  renderBudget();
+  alert('预算已保存');
+}
+function startEditBudget(cat){
+  $('#bdg_edit_key').value=pkey('bdg:'+cat);
+  $('#bdg_category').value=cat;
+  $('#bdg_amount').value=state.budgets[cat]||0;
+  $('#bdgEditingPill').parentElement.classList.add('editing');
+  $('#bdgEditingPill').style.display='inline-flex';
+  $('#btnCancelEditBudget').style.display='inline-block';
+  $('#sec-budget').classList.add('active');
+  $$('#tabs button').forEach(btn=>btn.classList.toggle('active', btn.dataset.target==='#sec-budget'));
+  $('#bdg_amount').focus();
+}
+function endEditBudget(){
+  $('#bdg_edit_key').value='';
+  document.getElementById('budgetForm').reset();
+  $('#bdgEditingPill').parentElement.classList.remove('editing');
+  $('#bdgEditingPill').style.display='none';
+  $('#btnCancelEditBudget').style.display='none';
+}
+async function deleteBudget(cat){
+  const key=pkey('bdg:'+cat);
+  if(!confirm('删除该类别预算？')) return;
+  await idb.del('budgets',key);
+  delete state.budgets[cat];
+  renderBudget();
+}
+
+// ====== 渲染 ======
+function renderAll(){ fillAccountSelects(); renderDashboard(); renderAccountsTable(); renderTxTable(); renderBudget(); renderFxTable(); }
+
+function fillAccountSelects(){
+  const opts=state.accounts.sort((a,b)=>a.sort-b.sort).map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+  $('#tx_account').innerHTML=opts; $('#tx_target').innerHTML=opts; $('#filter_account').innerHTML='<option value="">全部账户</option>'+opts;
+  $('#tx_date').value=todayStr();
+}
+
+function accountBalance(acc){
+  let bal=Number(acc.openingBalance)||0;
+  state.txs.filter(t=>t.accountId===acc.id).forEach(t=>{
+    if(t.side==='in') bal+=Number(t.amount)||0; else if(t.side==='out') bal-=Number(t.amount)||0;
+  });
+  return bal;
+}
+
+function renderDashboard(){
+  const base=state.prefs.baseCurrency;
+  let income=0, expense=0, net=0; const missing=new Set();
+  state.accounts.filter(a=>a.includeInNetWorth).forEach(a=>{
+    const bal=accountBalance(a);
+    const baseVal=amountToBase(bal,a.currency);
+    if(baseVal===null) missing.add(a.currency); else net+=baseVal;
+  });
+  state.txs.filter(t=>sameMonth(t.date,new Date()) && !t.isTransfer).forEach(t=>{
+    const acc=state.accounts.find(a=>a.id===t.accountId); if(!acc) return;
+    const v=amountToBase(t.amount,acc.currency); if(v===null) return; if(t.side==='in') income+=v; if(t.side==='out') expense+=v;
+  });
+  $('#netWorth').textContent=fmtAmount(net,base);
+  $('#monthIn').textContent=fmtAmount(income,base);
+  $('#monthOut').textContent=fmtAmount(expense,base);
+  $('#netWorthNote').textContent=missing.size? `缺少 ${Array.from(missing).join(', ')} 汇率，相关账户未计入净资产。` : '';
+
+  const wrap=$('#accountCards'); wrap.innerHTML='';
+  state.accounts.sort((a,b)=>a.sort-b.sort).forEach(a=>{
+    const bal=accountBalance(a);
+    const baseVal=amountToBase(bal,a.currency);
+    const card=document.createElement('div'); card.className='card';
+    card.innerHTML=`<div class="content">
+      <div class="row"><strong>${a.name}</strong><span class="space"></span><span class="tag">${a.type}</span></div>
+      <div class="muted" style="margin:6px 0">币种：${a.currency} · ${a.includeInNetWorth? '计入净资产':'不计入'}</div>
+      <div class="kpi"><span class="label">余额</span><span class="value amount">${fmtAmount(bal,a.currency)}</span>
+        ${baseVal!==null && a.currency!==base ? `<span class="note">≈ ${fmtAmount(baseVal,base)}</span>`:''}
+      </div>
+    </div>`;
+    wrap.appendChild(card);
+  });
+
+  const tbody=$('#recentTxTable tbody'); tbody.innerHTML='';
+  state.txs.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10).forEach(t=>{
+    const acc=state.accounts.find(a=>a.id===t.accountId);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${t.date}</td><td>${acc?acc.name:''}</td><td>${t.category||t.payee||''}${t.memo? ' · '+t.memo:''}</td>
+    <td style='text-align:right' class='amount ${t.side==='in'?'positive':'negative'}'>${(t.side==='in'?'+':'-')+fmtAmount(t.amount,acc?acc.currency:state.prefs.baseCurrency)}</td>
+    <td style='text-align:right'><button class='btn ghost' data-edit-tx='${t.id}'>编辑</button></td>`;
+    tbody.appendChild(tr);
+  });
+  $$('[data-edit-tx]').forEach(b=>b.onclick=()=>{
+    const t=state.txs.find(x=>x.id===b.dataset.editTx); if(!t) return;
+    startEditTx(t);
+  });
+
+  renderAcctDonut();
+}
+
+// ====== 圆环图 ======
+let donutCache=null;
+function accountStructureData(){
+  const base=state.prefs.baseCurrency;
+  const labels=[]; const values=[]; const colors=[]; let idx=0;
+  state.accounts.filter(a=>a.includeInNetWorth).forEach(a=>{
+    const bal=accountBalance(a);
+    const v=amountToBase(bal,a.currency);
+    if(v!==null && Math.abs(v)>0.0001){
+      labels.push(a.name);
+      values.push(v);
+      const hue=(idx*50)%360; colors.push(`hsl(${hue} 70% 55% / 1)`); idx++;
+    }
+  });
+  return {labels,values,colors};
+}
+function setCanvasSize(cnv){
+  const dpr=window.devicePixelRatio||1; const rect=cnv.getBoundingClientRect();
+  cnv.width=Math.max(300, Math.floor(rect.width*dpr)); cnv.height=Math.floor(260*dpr);
+  return dpr;
+}
+function drawDonutChart(cnv, labels, values, colors){
+  const dpr=setCanvasSize(cnv); const ctx=cnv.getContext('2d');
+  ctx.clearRect(0,0,cnv.width,cnv.height);
+  const W=cnv.width, H=cnv.height; const R=Math.min(W,H)/2 - 30*dpr; const r=R*0.6; const cx=W/2, cy=H/2;
+  const sum=values.reduce((a,b)=>a+b,0)||1; let start=-Math.PI/2;
+  const arcs=[];
+  values.forEach((v,i)=>{
+    const ang=2*Math.PI*(v/sum); const end=start+ang; ctx.fillStyle=colors[i]||'#4c8bf5';
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,start,end); ctx.closePath(); ctx.fill();
+    arcs.push({start,end,label:labels[i],value:v,color:colors[i],percent:(v/sum)});
+    start=end;
+  });
+  ctx.globalCompositeOperation='destination-out';
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.fill();
+  ctx.globalCompositeOperation='source-over';
+  const text=getComputedStyle(document.body).getPropertyValue('--text')||'#e7edf3';
+  const muted=getComputedStyle(document.body).getPropertyValue('--muted')||'#9fb3c8';
+  ctx.fillStyle=text; ctx.font=`${14*dpr}px system-ui`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('资产结构', cx, cy-10*dpr);
+  ctx.fillStyle=muted; ctx.font=`${12*dpr}px system-ui`; ctx.fillText('按账户（基准）', cx, cy+10*dpr);
+  donutCache={cx,cy,R,r,arcs,dpr};
+}
+function renderAcctDonut(){
+  const {labels,values,colors}=accountStructureData();
+  $('#acctDonutNote').textContent=`基准：${state.prefs.baseCurrency}`;
+  const cnv=$('#acctDonut');
+  drawDonutChart(cnv, labels, values, colors);
+  const lg=$('#acctLegend'); lg.innerHTML='';
+  const total=values.reduce((a,b)=>a+b,0)||1;
+  labels.forEach((lb,i)=>{
+    const item=document.createElement('div'); item.className='item';
+    const sw=document.createElement('span'); sw.className='swatch'; sw.style.background=colors[i]; item.appendChild(sw);
+    const pct=((values[i]/total)*100).toFixed(1)+'%';
+    item.appendChild(document.createTextNode(`${lb} · ${pct}`));
+    lg.appendChild(item);
+  });
+  if(!cnv._hoverBound){
+    cnv.addEventListener('mousemove', onDonutHover);
+    cnv.addEventListener('mouseleave', ()=>{ const t=$('#tooltip'); t.style.display='none'; });
+    cnv._hoverBound=true;
+  }
+}
+function onDonutHover(e){
+  if(!donutCache){ return; }
+  const rect=e.target.getBoundingClientRect();
+  const scale=(window.devicePixelRatio||1);
+  const x=(e.clientX - rect.left) * scale;
+  const y=(e.clientY - rect.top)  * scale;
+  const {cx,cy,R,r,arcs}=donutCache;
+  const dx=x - cx, dy=y - cy; const dist=Math.sqrt(dx*dx+dy*dy);
+  const t=$('#tooltip');
+  if(dist<r || dist>R){ t.style.display='none'; return; }
+  let ang=Math.atan2(dy,dx);
+  if(ang< -Math.PI/2){ ang+=2*Math.PI; }
+  const hit=arcs.find(a=> ang>=a.start && ang<a.end);
+  if(!hit){ t.style.display='none'; return; }
+  const base=state.prefs.baseCurrency;
+  const html=`<div class="title">${hit.label}</div>
+    <div class="row"><span>金额</span><strong>${fmtAmount(hit.value, base)}</strong></div>
+    <div class="row"><span>占比</span><strong>${(hit.percent*100).toFixed(1)}%</strong></div>`;
+  t.innerHTML=html;
+  t.style.display='block';
+  const pad=10; let tx=e.clientX+12, ty=e.clientY+12;
+  const vw=window.innerWidth, vh=window.innerHeight;
+  const tw=t.offsetWidth||160, th=t.offsetHeight||80;
+  if(tx+tw+pad>vw) tx=vw-tw-pad;
+  if(ty+th+pad>vh) ty=vh-th-pad;
+  t.style.left=tx+'px'; t.style.top=ty+'px';
+}
+
+// ====== 账户表（拖动排序） ======
+function renderAccountsTable(){
+  const tb=$('#accountsTable tbody'); tb.innerHTML='';
+  const base=state.prefs.baseCurrency;
+  state.accounts.sort((a,b)=>a.sort-b.sort).forEach(a=>{
+    const bal=accountBalance(a); const baseVal=amountToBase(bal,a.currency);
+    const tr=document.createElement('tr'); tr.dataset.id=a.id; tr.draggable=true;
+    tr.innerHTML=`<td class='drag-handle' title='拖动排序'>⋮⋮</td><td>${a.name}</td><td>${a.type}</td><td>${a.currency}</td><td>${a.includeInNetWorth?'是':'否'}</td>
+      <td style='text-align:right' class='amount'>${fmtAmount(bal,a.currency)}</td>
+      <td style='text-align:right' class='amount'>${baseVal!==null? fmtAmount(baseVal,base): '<span class="note">— 缺汇率</span>'}</td>
+      <td style='text-align:right'>
+        <button class='btn ghost' data-edit='${a.id}'>编辑</button>
+        <button class='btn ghost' data-del='${a.id}'>删除</button>
+      </td>`;
+    tb.appendChild(tr);
+  });
+  $$('[data-edit]').forEach(b=>b.onclick=()=>{
+    const a=state.accounts.find(x=>x.id===b.dataset.edit); if(!a) return;
+    $('#acc_id').value=a.id; $('#acc_name').value=a.name; $('#acc_type').value=a.type; $('#acc_currency').value=a.currency;
+    $('#acc_in_net').value=String(a.includeInNetWorth); $('#acc_opening').value=a.openingBalance; $('#acc_sort').value=a.sort;
+    $('#sec-accounts').classList.add('active'); $$('#tabs button').forEach(btn=>btn.classList.toggle('active', btn.dataset.target==='#sec-accounts'));
+    $('#accountForm').scrollIntoView({behavior:'smooth'});
+  });
+  $$('[data-del]').forEach(b=>b.onclick=async ()=>{
+    const a=state.accounts.find(x=>x.id===b.dataset.del); if(!a) return;
+    if(state.txs.some(t=>t.accountId===a.id)){ if(!confirm('该账户存在交易记录，删除将保留交易但孤立。确认删除？')) return; }
+    await idb.del('accounts',a.id); state.accounts=state.accounts.filter(x=>x.id!==a.id); renderAll();
+  });
+  let draggingId=null;
+  tb.addEventListener('dragstart',e=>{
+    const tr=e.target.closest('tr'); if(!tr) return;
+    draggingId=tr.dataset.id; tr.classList.add('dragging'); e.dataTransfer.effectAllowed='move';
+  });
+  tb.addEventListener('dragend',e=>{
+    const tr=e.target.closest('tr'); if(tr) tr.classList.remove('dragging'); draggingId=null;
+    $$('#accountsTable tbody tr').forEach(r=>r.classList.remove('drop-target'));
+  });
+  tb.addEventListener('dragover',e=>{
+    e.preventDefault();
+    const tr=e.target.closest('tr'); if(!tr) return;
+    $$('#accountsTable tbody tr').forEach(r=>r.classList.remove('drop-target'));
+    tr.classList.add('drop-target');
+  });
+  tb.addEventListener('drop',async e=>{
+    e.preventDefault();
+    const targetTr=e.target.closest('tr'); if(!targetTr || !draggingId) return;
+    const targetId=targetTr.dataset.id;
+    if(targetId===draggingId) return;
+    const order=state.accounts.sort((a,b)=>a.sort-b.sort).map(a=>a.id);
+    const from=order.indexOf(draggingId), to=order.indexOf(targetId);
+    if(from<0||to<0) return;
+    order.splice(to,0, order.splice(from,1)[0]);
+    state.accounts.forEach(a=>{ a.sort=(order.indexOf(a.id)+1)*10; idb.put('accounts',a); });
+    renderAll();
+  });
+}
+
+function renderTxTable(){
+  const acct=$('#filter_account').value; const kw=$('#filter_kw').value.trim().toLowerCase();
+  const tb=$('#txTable tbody'); tb.innerHTML='';
+  let list=[...state.txs];
+  if(acct) list=list.filter(t=>t.accountId===acct);
+  if(kw) list=list.filter(t=> (t.category||'').toLowerCase().includes(kw) || (t.payee||'').toLowerCase().includes(kw) || (t.memo||'').toLowerCase().includes(kw));
+  list.sort((a,b)=>b.date.localeCompare(a.date));
+  list.forEach(t=>{
+    const acc=state.accounts.find(a=>a.id===t.accountId);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${t.date}</td><td>${acc?acc.name:''}</td><td>${t.isTransfer? '转账':(t.side==='in'?'收入':'支出')}</td>
+      <td>${t.category||''}${t.payee? ' · '+t.payee:''}</td><td>${t.memo||''}</td>
+      <td style='text-align:right' class='amount ${t.side==='in'?'positive':'negative'}'>${(t.side==='in'?'+':'-')+fmtAmount(t.amount,acc?acc.currency:state.prefs.baseCurrency)}</td>
+      <td style='text-align:right'>
+        <button class='btn ghost' data-edit-tx='${t.id}'>编辑</button>
+        <button class='btn ghost' data-rm='${t.id}'>删除</button>
+      </td>`;
+    tb.appendChild(tr);
+  });
+  $$('[data-rm]').forEach(b=>b.onclick=async ()=>{
+    const t=state.txs.find(x=>x.id===b.dataset.rm); if(!t) return;
+    if(t.isTransfer && t.transferPeerId){ await idb.del('transactions',t.transferPeerId); state.txs=state.txs.filter(x=>x.id!==t.transferPeerId); }
+    await idb.del('transactions',t.id); state.txs=state.txs.filter(x=>x.id!==t.id); renderAll();
+  });
+  $$('[data-edit-tx]').forEach(b=>b.onclick=()=>{
+    const t=state.txs.find(x=>x.id===b.dataset.editTx); if(!t) return;
+    startEditTx(t);
+  });
+}
+
+function renderBudget(){
+  $('#budgetMonthLabel').textContent=ym(new Date());
+  const wrap=$('#budgetGrid'); wrap.innerHTML='';
+  const spent={};
+  state.txs.filter(t=>t.side==='out' && !t.isTransfer && sameMonth(t.date,new Date())).forEach(t=>{
+    const acc=state.accounts.find(a=>a.id===t.accountId); if(!acc) return;
+    const v=amountToBase(t.amount,acc.currency); if(v===null) return;
+    const c=t.category||'其他'; spent[c]=(spent[c]||0)+v;
+  });
+  const categories=[...new Set([...Object.keys(state.budgets), ...Object.keys(spent)])];
+  categories.forEach(c=>{
+    const bAmt=Number(state.budgets[c]||0), sAmt=Number(spent[c]||0);
+    const pct=bAmt>0? Math.min(100, Math.round(sAmt/bAmt*100)) : 0;
+    const card=document.createElement('div'); card.className='card';
+    card.innerHTML=`<div class='content'>
+      <div class='row'><strong>${c}</strong><span class='space'></span><span class='muted'>预算：${fmtAmount(bAmt,state.prefs.baseCurrency)}</span></div>
+      <div class='row' style='margin-top:6px'><div class='progress' style='flex:1'><i style='width:${pct}%'></i></div> <span class='pill'>${pct}%</span></div>
+      <div class='row' style='margin-top:6px'><span class='muted'>已用：</span><strong class='amount negative'>-${fmtAmount(sAmt,state.prefs.baseCurrency)}</strong><span class='space'></span><span class='muted'>剩余：</span><strong>${fmtAmount(Math.max(0,bAmt-sAmt),state.prefs.baseCurrency)}</strong></div>
+      <div class='row' style='margin-top:8px;justify-content:flex-end;gap:8px'>
+        <button class='btn ghost' data-bdg-edit='${c}'>编辑</button>
+        <button class='btn ghost' data-bdg-del='${c}'>删除</button>
+      </div>
+    </div>`;
+    wrap.appendChild(card);
+  });
+  $$('[data-bdg-edit]').forEach(b=>b.onclick=()=>startEditBudget(b.dataset.bdgEdit));
+  $$('[data-bdg-del]').forEach(b=>b.onclick=()=>deleteBudget(b.dataset.bdgDel));
+}
+
+function renderFxTable(){
+  const tb=$('#fxTable tbody'); tb.innerHTML='';
+  const nowStr=new Date().toLocaleString();
+  Object.keys(state.fxrates).sort().forEach(q=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${q}</td><td style='text-align:right'>${Number(state.fxrates[q]).toFixed(4)}</td><td>${nowStr}</td>
+      <td style='text-align:right'>
+        <button class='btn ghost' data-fxedit='${q}'>编辑</button>
+        <button class='btn ghost' data-fxdel='${q}'>删除</button>
+      </td>`;
+    tb.appendChild(tr);
+  });
+  $$('[data-fxedit]').forEach(b=>b.onclick=()=>{ const q=b.dataset.fxedit; $('#fx_quote').value=q; $('#fx_rate').value=state.fxrates[q]; $('#fx_quote').focus(); });
+  $$('[data-fxdel]').forEach(b=>b.onclick=async ()=>{ const q=b.dataset.fxdel; const key=pkey('fx:'+q); await idb.del('fxrates',key); delete state.fxrates[q]; renderAll(); });
+}
+
+async function onSavePrefs(e){ e.preventDefault(); const oldBase=state.prefs.baseCurrency;
+  state.prefs.baseCurrency=$('#baseCurrency').value;
+  state.prefs.maskAmounts=$('#maskAmounts').value==='true';
+  state.prefs.theme=$('#themeSelect').value;
+  mask=state.prefs.maskAmounts; applyTheme(state.prefs.theme);
+  await savePrefs(); renderAll();
+  if(oldBase!==state.prefs.baseCurrency){ alert('已更改基准货币：请在"汇率管理"联网更新或手动填入外币→基准汇率。'); }
+}
+
+async function saveFxRate(e){
+  e.preventDefault();
+  let q=($('#fx_quote').value||'').trim().toUpperCase(); const r=parseFloat($('#fx_rate').value);
+  if(!q||!(r>0)){ alert('请填写外币代码与正确汇率'); return; }
+  if(q===state.prefs.baseCurrency){ alert('无需为基准货币设置汇率'); return; }
+  const rec={key:pkey('fx:'+q), profileId:state.profileId, quote:q, rate:r, updatedAt:new Date().toISOString()};
+  await idb.put('fxrates',rec); state.fxrates[q]=r; renderAll(); alert('汇率已保存');
+}
+
+// ====== 报表 ======
+function lastNMonthsLabels(n=12){
+  const labels=[]; const now=new Date(); now.setDate(1);
+  for(let i=n-1;i>=0;i--){ const d=new Date(now.getFullYear(), now.getMonth()-i, 1); labels.push(ym(d)); }
+  return labels;
+}
+function monthlyIEBase(n=12){
+  const labels=lastNMonthsLabels(n); const inc=Array(n).fill(0), exp=Array(n).fill(0);
+  state.txs.filter(t=>!t.isTransfer).forEach(t=>{
+    const idx=labels.indexOf(ym(t.date)); if(idx<0) return; const acc=state.accounts.find(a=>a.id===t.accountId); if(!acc) return;
+    const v=amountToBase(t.amount,acc.currency); if(v===null) return; if(t.side==='in') inc[idx]+=v; if(t.side==='out') exp[idx]+=v;
+  });
+  return {labels,inc,exp};
+}
+function setCanvasSizePlot(cnv){
+  const dpr=window.devicePixelRatio||1; const rect=cnv.getBoundingClientRect();
+  cnv.width=Math.max(300, Math.floor(rect.width*dpr)); cnv.height=Math.floor(260*dpr);
+  return dpr;
+}
+function drawLineChart(cnv, labels, s1, s2){
+  const dpr=setCanvasSizePlot(cnv); const ctx=cnv.getContext('2d');
+  ctx.clearRect(0,0,cnv.width,cnv.height);
+  const W=cnv.width, H=cnv.height, pad=40*dpr;
+  const all=[...s1,...s2]; const max=Math.max(1, Math.ceil(Math.max(...all,0)*1.2));
+  ctx.strokeStyle='#2b394a'; ctx.lineWidth=1*dpr; ctx.beginPath(); ctx.moveTo(pad, H-pad); ctx.lineTo(W-pad, H-pad); ctx.lineTo(W-pad, pad); ctx.stroke();
+  const muted=getComputedStyle(document.body).getPropertyValue('--muted')||'#9fb3c8';
+  const text=getComputedStyle(document.body).getPropertyValue('--text')||'#e7edf3';
+  ctx.fillStyle=muted; ctx.font=`${11*dpr}px system-ui`;
+  const ticks=4; for(let i=0;i<=ticks;i++){ const y=H-pad-(H-2*pad)/ticks*i; const val=max/ticks*i; ctx.fillText(val.toFixed(0), 6*dpr, y+4*dpr); ctx.strokeStyle='rgba(0,0,0,.1)'; ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W-pad, y); ctx.stroke(); }
+  const step=(W-2*pad)/(labels.length-1||1);
+  labels.forEach((lb,i)=>{ const x=pad+i*step; ctx.save(); ctx.translate(x, H-pad+14*dpr); ctx.rotate(-Math.PI/5); ctx.fillText(lb, 0,0); ctx.restore(); });
+  function plot(arr, color){ ctx.strokeStyle=color; ctx.lineWidth=2*dpr; ctx.beginPath(); arr.forEach((v,i)=>{ const x=pad+i*step; const y=H-pad - (v/max)*(H-2*pad); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }); ctx.stroke(); }
+  plot(s1,'#31c48d'); // income
+  plot(s2,'#f05252'); // expense
+  ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--panel')||'#12161c';
+  ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--border')||'#243140';
+  ctx.fillRect(W-150*dpr, pad, 120*dpr, 30*dpr); ctx.strokeRect(W-150*dpr, pad, 120*dpr, 30*dpr);
+  ctx.fillStyle=text; ctx.font=`${11*dpr}px system-ui`;
+  ctx.fillText('收入', W-140*dpr, pad+10*dpr); ctx.fillText('支出', W-80*dpr, pad+10*dpr);
+  ctx.fillStyle='#31c48d'; ctx.fillRect(W-148*dpr, pad+14*dpr, 10*dpr, 3*dpr);
+  ctx.fillStyle='#f05252'; ctx.fillRect(W-88*dpr, pad+14*dpr, 10*dpr, 3*dpr);
+}
+function currentMonthExpenseByCat(){
+  const map={}; const now=new Date();
+  state.txs.filter(t=>t.side==='out' && !t.isTransfer && sameMonth(t.date,now)).forEach(t=>{
+    const acc=state.accounts.find(a=>a.id===t.accountId); if(!acc) return; const v=amountToBase(t.amount,acc.currency); if(v===null) return;
+    const c=t.category||'其他'; map[c]=(map[c]||0)+v;
+  });
+  const labels=Object.keys(map); const values=labels.map(k=>map[k]);
+  return {labels,values};
+}
+function drawPieChart(cnv, labels, values){
+  const dpr=setCanvasSizePlot(cnv); const ctx=cnv.getContext('2d');
+  ctx.clearRect(0,0,cnv.width,cnv.height);
+  const W=cnv.width, H=cnv.height; const R=Math.min(W,H)/2 - 30*dpr; const cx=W/2, cy=H/2;
+  const sum=values.reduce((a,b)=>a+b,0)||1; let start=-Math.PI/2;
+  values.forEach((v,i)=>{ const ang=2*Math.PI*(v/sum); const hue=(i*55)%360; ctx.fillStyle=`hsl(${hue} 70% 55% / 1)`; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,start,start+ang); ctx.closePath(); ctx.fill(); start+=ang; });
+  const muted=getComputedStyle(document.body).getPropertyValue('--muted')||'#9fb3c8';
+  const text=getComputedStyle(document.body).getPropertyValue('--text')||'#e7edf3';
+  ctx.fillStyle=text; ctx.font=`${12*dpr}px system-ui`;
+  let ly=20*dpr; labels.forEach((lb,i)=>{ const hue=(i*55)%360; ctx.fillStyle=`hsl(${hue} 70% 60% / 1)`; ctx.fillRect(20*dpr, ly-8*dpr, 10*dpr, 10*dpr); ctx.fillStyle=muted; const val=values[i]; const pct=((val/sum)*100).toFixed(1)+'%'; ctx.fillText(`${lb} · ${pct}`, 36*dpr, ly); ly+=16*dpr; });
+}
+function renderReports(){
+  const {labels,inc,exp}=monthlyIEBase(12);
+  $('#trendNote').textContent=`基准：${state.prefs.baseCurrency}`;
+  drawLineChart($('#lineChart'), labels, inc, exp);
+  const pie=currentMonthExpenseByCat(); $('#pieNote').textContent=`月份：${ym(new Date())} · 基准：${state.prefs.baseCurrency}`;
+  drawPieChart($('#pieChart'), pie.labels, pie.values);
+}
+
+// ====== 导入/导出（仅当前 ID） ======
+async function exportCurrentIdData(){
+  const profile = state.profileId;
+  const accounts = (await idb.getAll('accounts')).filter(x => (x.profileId||'default') === profile);
+  const transactions = (await idb.getAll('transactions')).filter(x => (x.profileId||'default') === profile);
+  const budgets = (await idb.getAll('budgets')).filter(x => x.profileId === profile);
+  const fxrates = (await idb.getAll('fxrates')).filter(x => x.profileId === profile);
+  const prefs = {
+    baseCurrency: await idb.getPrefRaw(pkey('baseCurrency')),
+    maskAmounts: await idb.getPrefRaw(pkey('maskAmounts')),
+    theme: await idb.getPrefRaw(pkey('theme'))
+  };
+  const dump = {meta:{app:'ledger-adv', version:'v6.1', profileId:profile, exportedAt:new Date().toISOString()}, accounts, transactions, budgets, fxrates, prefs};
+  const blob = new Blob([JSON.stringify(dump,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ledger-export-${profile}-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();}, 0);
+}
+
+async function importCurrentIdDataFromFile(file){
+  try{
+    const text = await file.text();
+    let data;
+    try{
+      data = JSON.parse(text);
+    }catch(parseErr){
+      alert('导入失败：文件不是有效的 JSON。');
+      return;
+    }
+
+    // 元信息与预览
+    const prof = state.profileId;
+    const metaOk = !data.meta || data.meta.app === 'ledger-adv';
+    const ac = Array.isArray(data.accounts) ? data.accounts.length : 0;
+    const tx = Array.isArray(data.transactions) ? data.transactions.length : 0;
+    const bd = Array.isArray(data.budgets) ? data.budgets.length : 0;
+    const fx = Array.isArray(data.fxrates) ? data.fxrates.length : 0;
+    const msg = [
+      '将导入数据到当前 ID：' + prof,
+      `账户：${ac} 条`,
+      `交易：${tx} 条`,
+      `预算：${bd} 条`,
+      `汇率：${fx} 条`,
+      metaOk ? '' : '⚠️ 警告：文件来源不是本应用导出（meta.app≠ledger-adv），可能不兼容。'
+    ].filter(Boolean).join('\n');
+
+    if(!confirm(msg + '\n\n继续导入吗？（存在相同主键的记录将被覆盖；如需完全替换，请先导出备份后再"清空当前 ID 数据"再导入）')) return;
+
+    // 现有 ID 集
+    const existingAccIds = new Set((state.accounts||[]).map(a=>a.id));
+    const existingTxIds  = new Set((state.txs||[]).map(t=>t.id));
+
+    // 账户导入（处理 id 冲突）
+    const accountIdMap = {};
+    if(Array.isArray(data.accounts)){
+      for(const a of data.accounts){
+        if(!a || !a.id) continue;
+        a.profileId = prof;
+        if(existingAccIds.has(a.id)){
+          const oldId = a.id;
+          a.id = (typeof uid==='function') ? uid() : (oldId + '-imp-' + Math.random().toString(36).slice(2,8));
+          accountIdMap[oldId] = a.id;
+        }
+        await idb.put('accounts', a);
+      }
+    }
+
+    // 交易导入（两阶段，处理 accountId & transferPeerId & id 冲突）
+    if(Array.isArray(data.transactions)){
+      const txIdMap = {};
+      // 第一阶段：预分配新 id，映射 accountId
+      const staged = [];
+      for(const t0 of data.transactions){
+        if(!t0 || !t0.id) continue;
+        const t = {...t0};
+        t.profileId = prof;
+        if(accountIdMap[t.accountId]) t.accountId = accountIdMap[t.accountId];
+        if(existingTxIds.has(t.id)){
+          const oldId = t.id;
+          t.id = (typeof uid==='function') ? uid() : (oldId + '-imp-' + Math.random().toString(36).slice(2,8));
+          txIdMap[oldId] = t.id;
+        }
+        staged.push(t);
+      }
+      // 第二阶段：修正 transferPeerId 并写入
+      for(const t of staged){
+        if(t.transferPeerId && txIdMap[t.transferPeerId]) t.transferPeerId = txIdMap[t.transferPeerId];
+        await idb.put('transactions', t);
+      }
+    }
+
+    // 预算（按类别覆盖）
+    if(Array.isArray(data.budgets)){
+      for(const b of data.budgets){
+        if(!b || !b.category) continue;
+        const rec = {key:pkey('bdg:'+b.category), profileId:prof, category:b.category, amount:Number(b.amount)||0};
+        await idb.put('budgets', rec);
+      }
+    }
+
+    // 汇率（按币种覆盖）
+    if(Array.isArray(data.fxrates)){
+      for(const r of data.fxrates){
+        if(!r || !r.quote) continue;
+        const rec = {key:pkey('fx:'+r.quote), profileId:prof, quote:r.quote, rate:Number(r.rate)||0, updatedAt:new Date().toISOString()};
+        await idb.put('fxrates', rec);
+      }
+    }
+
+    // 偏好（可选）
+    if(data.prefs && typeof data.prefs==='object'){
+      if(data.prefs.baseCurrency) await idb.setPrefRaw(pkey('baseCurrency'), data.prefs.baseCurrency);
+      if(typeof data.prefs.maskAmounts!=='undefined') await idb.setPrefRaw(pkey('maskAmounts'), !!data.prefs.maskAmounts);
+      if(data.prefs.theme) await idb.setPrefRaw(pkey('theme'), data.prefs.theme);
+      if(typeof applyTheme === 'function') try{ applyTheme(); }catch(_){}
+    }
+
+    await loadProfile(prof);
+    renderAll();
+    alert('导入完成！');
+  }catch(err){
+    alert('导入失败：'+(err && err.message ? err.message : err));
+  }
+}
+
+async function clearCurrentIdData(){
+  if(!confirm(`确定要清空当前 ID（${state.profileId}）的账户/交易/预算/汇率数据吗？此操作不可撤销。建议先导出备份。`)) return;
+  const prof = state.profileId;
+  const delFromStore = async (store, keyField='id')=>{
+    const all = await idb.getAll(store);
+    const mine = all.filter(x => (x.profileId||'default') === prof);
+    for(const rec of mine){ await idb.del(store, rec[keyField]); }
+  };
+  await delFromStore('accounts','id');
+  await delFromStore('transactions','id');
+  // budgets & fxrates 使用 key = pkey(...)
+  const allB = await idb.getAll('budgets'); for(const b of allB.filter(x=>x.profileId===prof)){ await idb.del('budgets', b.key); }
+  const allF = await idb.getAll('fxrates'); for(const r of allF.filter(x=>x.profileId===prof)){ await idb.del('fxrates', r.key); }
+
+  await loadProfile(prof);
+  renderAll();
+  alert('已清空当前 ID 数据。');
+}
+
+// 绑定按钮（页面加载后）
+window.addEventListener('load', ()=>{
+  const pid=document.querySelector('#dataProfileId'); if(pid) pid.textContent=state.profileId;
+  const bx=document.querySelector('#btnExportData'); if(bx) bx.onclick=exportCurrentIdData;
+  const bi=document.querySelector('#btnImportData'); if(bi) bi.onclick=()=>document.querySelector('#importFile')?.click();
+  const fi=document.querySelector('#importFile'); if(fi) fi.onchange=(e)=>{ const f=e.target.files && e.target.files[0]; if(f) importCurrentIdDataFromFile(f); e.target.value=''; };
+  const bc=document.querySelector('#btnClearCurrentData'); if(bc) bc.onclick=clearCurrentIdData;
+});
+
+
+// ====== 动态刷新"当前 ID"显示 ======
+function updateDataProfileId(){
+  const el = document.querySelector('#dataProfileId');
+  if(el) el.textContent = state && state.profileId ? state.profileId : '';
+}
+// 包装 loadProfile / renderAll，确保每次切换 ID 或重绘后都同步显示
+(function(){
+  try{
+    const _lp = (typeof loadProfile === 'function') ? loadProfile : null;
+    if(_lp){
+      window.loadProfile = async function(){
+        const r = await _lp.apply(this, arguments);
+        updateDataProfileId();
+        return r;
+      }
+    }
+  }catch(e){}
+  try{
+    const _ra = (typeof renderAll === 'function') ? renderAll : null;
+    if(_ra){
+      window.renderAll = function(){
+        const r = _ra.apply(this, arguments);
+        updateDataProfileId();
+        return r;
+      }
+    }
+  }catch(e){}
+})();
+
+// 启动
+boot();
+</script>
+</body>
+</html>
