@@ -61,15 +61,15 @@ async function handleFiles(files){
 function createItem(file){
   const div = document.createElement('div'); div.className='item';
   const img = document.createElement('img');
-  const info = document.createElement('div'); info.className='item-info';
+  const center = document.createElement('div'); center.className='item-center';
   const name = document.createElement('div'); name.className='name';
   const size = document.createElement('div'); size.className='size';
   const status = document.createElement('div'); status.className='item-status';
   const urlBox = document.createElement('div'); urlBox.className='item-url';
   const retryBtn = document.createElement('span'); retryBtn.className='item-action'; retryBtn.textContent='重试'; retryBtn.style.display='none';
 
-  info.appendChild(name); info.appendChild(size);
-  div.appendChild(img); div.appendChild(info); div.appendChild(status); div.appendChild(retryBtn); div.appendChild(urlBox);
+  center.appendChild(name); center.appendChild(size);
+  div.appendChild(img); div.appendChild(center); div.appendChild(urlBox); div.appendChild(status); div.appendChild(retryBtn);
 
   name.textContent = file.name;
   size.textContent = formatSize(file.size);
@@ -114,9 +114,10 @@ async function upload({file,dom,status,urlBox,retryBtn}){
     if(!r.ok) throw new Error(await r.text());
 
     const rawUrl = `https://raw.githubusercontent.com/${user}/${repo}/${branch}/${fileName}`;
+    const fastUrl = `https://ghfast.top/${rawUrl}`;          // 加速前缀
     status.textContent='✅ 成功'; status.classList.add('success');
-    urlBox.innerHTML = `<a href="${rawUrl}" target="_blank">${rawUrl}</a>`;
-    tasks.push({name:file.name,url:rawUrl});
+    urlBox.innerHTML = `<a href="${fastUrl}" target="_blank">${fastUrl}</a>`;
+    tasks.push({name:file.name,url:fastUrl});
   }catch(e){
     console.error(e);
     status.textContent='❌ 失败'; status.classList.add('error');
