@@ -18,12 +18,13 @@
   <input id="repo" type="text" placeholder="img1"/>
   <label>分支</label>
   <input id="branch" type="text" placeholder="master"/>
-<!-- 好看滑动开关 -->
-<label class="switch-box">
-  <input id="doCompress" type="checkbox">
-  <span class="switch"></span>
-  <span class="switch-text">压缩图片（默认原图）</span>
-</label>
+
+  <!-- ✅ 整个开关用 **一个** label 指向 input，不嵌套 -->
+  <div class="switch-box">
+    <input id="doCompress" type="checkbox">
+    <label for="doCompress" class="switch"></label>
+    <span class="switch-text" id="switchText">✅ 原图直传（不压缩）</span>
+  </div>
 </div>
 
 <div class="drop-zone" id="dropZone">
