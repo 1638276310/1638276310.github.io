@@ -28,11 +28,20 @@ const config = {
   if(config.data[k]) $(`#${k}`).value=config.data[k];
   $(`#${k}`).addEventListener('change',e=>config.set(k,e.target.value));
 });
-// 记住压缩勾选状态
+// 记住压缩勾选状态 + 文字联动
 const doCompressEl = $('#doCompress');
+const switchTextEl = $('#switchText');
 const COMPRESS_KEY = 'gh_doCompress';
+
+function updateSwitchText(){
+  switchTextEl.textContent = doCompressEl.checked ? '☑️ 启用压缩' : '✅ 原图直传（不压缩）';
+}
 doCompressEl.checked = localStorage.getItem(COMPRESS_KEY)==='true';
-doCompressEl.addEventListener('change',()=>localStorage.setItem(COMPRESS_KEY,doCompressEl.checked));
+updateSwitchText();
+doCompressEl.addEventListener('change',()=>{
+  localStorage.setItem(COMPRESS_KEY,doCompressEl.checked);
+  updateSwitchText();
+});
 
 /* ========== 拖拽 / 选择 ========== */
 const dropZone = $('#dropZone');
@@ -72,9 +81,10 @@ const limit = pLimit(3);
 
 /* ========== 压缩（可选） ========== */
 async function maybeCompress(file){
-  if(!doCompressEl.checked) return file;
+  if(!doCompressEl.checked) return {file, didCompress:false};
   const opt = { maxWidthOrHeight: 1440, useWebWorker: true, maxIteration: 6, fileType: file.type };
-  return await imageCompression(file, opt);
+  const compressedFile = await imageCompression(file, opt);
+  return {file:compressedFile, didCompress:true, newSize:compressedFile.size};
 }
 
 /* ========== ImageTask 类 ========== */
@@ -85,13 +95,15 @@ class ImageTask {
     this.url  = null;
     this.dom  = this.render();
     this.retryCount = 0;
+    this.didCompress = false;   // 记忆是否压缩
+    this.newSize = 0;           // 压缩后大小
   }
   render(){
     const div = document.createElement('div'); div.className='item';
     const img = document.createElement('img');
     const center = document.createElement('div'); center.className='item-center';
     const name = document.createElement('div'); name.className='name';
-    const size = document.createElement('div'); size.className='size';
+    const size = document.createElement('div'); size.className='size'
     const status = document.createElement('div'); status.className='item-status';
     const urlBox = document.createElement('div'); urlBox.className='item-url';
     const retryBtn = document.createElement('span'); retryBtn.className='item-action'; retryBtn.textContent='重试'; retryBtn.style.display='none';
@@ -108,7 +120,7 @@ class ImageTask {
     reader.onload = e => img.src = e.target.result;
     reader.readAsDataURL(this.file);
 
-    this.statusEl=status; this.urlBox=urlBox; this.retryBtn=retryBtn;
+    this.nameEl=name; this.sizeEl=size; this.statusEl=status; this.urlBox=urlBox; this.retryBtn=retryBtn;
     return div;
   }
   async start(){
@@ -117,12 +129,18 @@ class ImageTask {
     if(!token||!user||!repo||!branch){
       this.setStatus('❌ 请先填写配置','error'); return;
     }
-    this.setStatus('上传中…','');
-    const file = await maybeCompress(this.file);   // 关键：可选压缩
+    /* ① 压缩阶段 */
+    this.setStatus('压缩中…','');
+    const {file, didCompress, newSize} = await maybeCompress(this.file);
+    this.didCompress = didCompress;
+    if(didCompress) this.newSize = newSize;
+
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     const hash = await sha256(file);
     const fileName = hash + ext;
 
+    /* ② 上传阶段 */
+    this.setStatus('上传中…','');
     try{
       // 秒传检查
       const checkUrl = `https://api.github.com/repos/${user}/${repo}/contents/${fileName}?ref=${branch}`;
@@ -159,6 +177,11 @@ class ImageTask {
   }
   finish(fastUrl){
     this.status='success';
+    /* ③ 显示压缩标记 */
+    if(this.didCompress){
+      const mark = `（已压缩-压缩后 ${formatSize(this.newSize)}）`;
+      this.nameEl.textContent = this.file.name + mark;
+    }
     this.setStatus('✅ 成功','success');
     this.urlBox.innerHTML = `<a href="${fastUrl}" target="_blank">${fastUrl}</a>`;
     this.url = fastUrl;
