@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<title>GitHub 图床拖拽上传</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ===== 用户配置 ===== -->
+<div class="settings">
+  <h2>⚙️ GitHub 配置 & 自定义信息</h2>
+
+  <label>Personal Access Token</label>
+  <input id="token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"/>
+
+  <label>GitHub 用户名</label>
+  <input id="user" type="text" placeholder="1638276310"/>
+
+  <label>仓库名</label>
+  <input id="repo" type="text" placeholder="img1"/>
+
+  <label>分支</label>
+  <input id="branch" type="text" placeholder="master"/>
+
+  <label>上传目录（可空，支持 <code>${date}</code>）</label>
+  <input id="folder" type="text" placeholder="imgs/${date}/"/>
+
+  <label>Commit Message 模板（支持 <code>${fileName}</code>、<code>${user}</code>、<code>${date}</code>）</label>
+  <textarea id="message" placeholder="upload ${fileName} (by ${user})">upload ${fileName} (by ${user})</textarea>
+</div>
+
+<!-- ===== 拖拽区域 ===== -->
+<div class="drop-zone" id="dropZone">
+  <div class="hint">📷 拖拽图片到此处 或 点击选择</div>
+  <input id="fileInput" type="file" multiple accept="image/*"/>
+</div>
+
+<!-- ===== 结果列表 ===== -->
+<div class="list" id="list"></div>
+<div class="copy-all" id="copyAll">
+  <button data-type="md">复制 Markdown</button>
+  <button data-type="html">复制 HTML</button>
+  <button data-type="url">复制直链</button>
+</div>
+
+<script src="main.js"></script>
+</body>
+</html>
