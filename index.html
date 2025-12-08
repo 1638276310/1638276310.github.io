@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,11 +11,11 @@
     <!-- Custom Styles -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="bc.css">
-        <!-- 指定 favicon.ico 图标 -->
+    <!-- 指定 favicon.ico 图标 -->
     <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 
-<body style="max-width: 768px; margin: auto;">
+<body>
     <div class="bc_content">
         <div class="bc-fluid">
             <div class="bc-row bc-space10">
@@ -22,7 +23,7 @@
                     <div class="bc_mbl bc_box" id="bc_mobile_head">
                         <div class="bc-row">
                             <div class="bc-xs3">
-                                <img class="bc_mbl bc_box img-avatar " style="border-radius: 50%;" src="logo.gif">
+                                <img class="bc_mbl bc_box img-avatar" style="border-radius: 50%;" src="logo.gif">
                             </div>
                             <div class="bc-xs9">
                                 <div class="bc-xs12">
@@ -46,6 +47,7 @@
                     </div>
                 </div>
             </div>
+            
             <div class="bc-row bc-space10">
                 <div class="bc-xs6">
                     <div class="bc_box bc_mbl bc_center">
@@ -60,6 +62,7 @@
                     </div>
                 </div>
             </div>
+            
             <div class="bc-row bc-space10">
                 <div class="bc-xs6">
                     <div class="bc_box bc_mbl bc_center">
@@ -68,12 +71,13 @@
                     </div>
                 </div>
                 <div class="bc-xs6">
-                  <div class="bc_box bc_mbl bc_center">
+                    <div class="bc_box bc_mbl bc_center">
                         <img class="icon" src="gitee.ico" alt="Gitee图标">
                         <a href="https://gitee.com/q1638276310">https://gitee.com/q1638276310</a>
                     </div>
                 </div>
             </div>
+            
             <div class="bc-row bc-space10">
                 <div class="bc-xs6">
                     <div class="bc_box bc_mbl bc_center">
@@ -81,84 +85,107 @@
                         <a href="https://space.bilibili.com/326368994">https://space.bilibili.com/326368994</a>
                     </div>
                 </div>
-                <div class="bc-sm12">
-                    <div class="bc_box bc_mbl">
-                        <div class="bc_box bc_mbl">
-                            <p style="text-align: center;">
-                                欢迎加群 991639461，一起学习，一起进步！
-                                <a href="https://qm.qq.com/q/fw5zFTtD34">点击加群</a>
-                            </p>
-                        </div>
+                <div class="bc-xs6">
+                    <div class="bc_box bc_mbl bc_center">
+                        <p style="text-align: center; margin: 0; font-size: 10pt;">
+                            欢迎加群 991639461，一起学习！
+                            <a href="https://qm.qq.com/q/fw5zFTtD34" style="display: block; margin-top: 5px; font-size: 9pt;">点击加群</a>
+                        </p>
                     </div>
                 </div>
             </div>
+            
+            <!-- 优化后的旗下站点部分 -->
             <div class="bc-row bc-space10">
                 <div class="bc-xs12">
                     <div class="bc_box bc_mbl">
                         <div class="bc-row">
-                            <h3 class="bc-xs12 bc_box">旗下站点</h3>
+                            <h3 class="bc-xs12 bc_box" style="margin: 0 0 10px 0; text-align: center;">旗下站点</h3>
                             <hr>
                         </div>
-                        <div class="bc-row bc-space10" style="word-wrap:break-word;">
-                            <a href="./PolyBed" class="bc-xs6 bc-sm4 bc-md4 bc-lg4" target="_blank">
+                        
+                        <div class="site-grid">
+                            <a href="./PolyBed" class="site-item" target="_blank">
                                 <div class="bc_a btn-orange bc_center">
                                     聚合图床
                                 </div>
+                                <div class="site-title">聚合图床</div>
                             </a>
-                            <a href="./Github_imgs_uploader" class="bc-xs6 bc-sm4 bc-md4 bc-lg4" target="_blank">
-                                <div class="bc_a btn-orange bc_center">
+                            
+                            <a href="./Github_imgs_uploader" class="site-item" target="_blank">
+                                <div class="bc_a btn-green bc_center">
                                     GitHub图床
                                 </div>
+                                <div class="site-title">GitHub图床</div>
                             </a>
-                            <a href="./163music" class="bc-xs6 bc-sm4 bc-md4 bc-lg4" target="_blank">
-                                <div class="bc_a btn-orange bc_center">
+                            
+                            <a href="./163music" class="site-item" target="_blank">
+                                <div class="bc_a btn-blue bc_center">
                                     网易云解析
                                 </div>
+                                <div class="site-title">网易云解析</div>
                             </a>
-                            <a href="./dy" class="bc-xs6 bc-sm4 bc-md4 bc-lg4" target="_blank">
-                                <div class="bc_a btn-orange bc_center">
-                                    抖音随机美女
+                            
+                            <a href="./dy" class="site-item" target="_blank">
+                                <div class="bc_a btn-purple bc_center">
+                                    抖音美女
                                 </div>
+                                <div class="site-title">抖音美女</div>
                             </a>
-                            <a href="./Flux" class="bc-xs6 bc-sm4 bc-md4 bc-lg4" target="_blank">
+                            
+                            <a href="./Flux" class="site-item" target="_blank">
                                 <div class="bc_a btn-orange bc_center">
                                     HTML版flux
                                 </div>
+                                <div class="site-title">HTML版flux</div>
                             </a>
-                            <a href="./jsfuck" class="bc-xs6 bc-sm4 bc-md4 bc-lg4" target="_blank">
-                                <div class="bc_a btn-orange bc_center">
+                            
+                            <a href="./jsfuck" class="site-item" target="_blank">
+                                <div class="bc_a btn-green bc_center">
                                     JSfuck
                                 </div>
+                                <div class="site-title">JSfuck</div>
                             </a>
-                            <a href="./qm" class="bc-xs6 bc-sm4 bc-md4 bc-lg4" target="_blank">
-                                <div class="bc_a btn-orange bc_center">
-                                    个性化生成手写签名
+                            
+                            <a href="./qm" class="site-item" target="_blank">
+                                <div class="bc_a btn-blue bc_center">
+                                    手写签名
                                 </div>
+                                <div class="site-title">手写签名</div>
                             </a>
-                            <a href="./RandomBeautyImg" class="bc-xs6 bc-sm4 bc-md4 bc-lg4" target="_blank">
-                                <div class="bc_a btn-orange bc_center">
-                                    随机美女图片
+                            
+                            <a href="./RandomBeautyImg" class="site-item" target="_blank">
+                                <div class="bc_a btn-purple bc_center">
+                                    随机美女
                                 </div>
+                                <div class="site-title">随机美女</div>
                             </a>
-                            <a href="./tools" class="bc-xs6 bc-sm4 bc-md4 bc-lg4" target="_blank">
+                            
+                            <a href="./tools" class="site-item" target="_blank">
                                 <div class="bc_a btn-orange bc_center">
-                                    HTML使用工具集
+                                    HTML工具集
                                 </div>
+                                <div class="site-title">HTML工具集</div>
                             </a>
-                            <a href="./GoldNotes" class="bc-xs6 bc-sm4 bc-md4 bc-lg4" target="_blank">
-                                <div class="bc_a btn-orange bc_center">
+                            
+                            <a href="./GoldNotes" class="site-item" target="_blank">
+                                <div class="bc_a btn-green bc_center">
                                     记账本
                                 </div>
+                                <div class="site-title">记账本</div>
                             </a>
-                            <a href="./img-scrambler" class="bc-xs6 bc-sm4 bc-md4 bc-lg4" target="_blank">
-                                <div class="bc_a btn-orange bc_center">
-                                    图片混淆专业版
+                            
+                            <a href="./img-scrambler" class="site-item" target="_blank">
+                                <div class="bc_a btn-blue bc_center">
+                                    图片混淆
                                 </div>
+                                <div class="site-title">图片混淆</div>
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
+            
             <div class="bc-row bc-space10">
                 <div class="bc-xs12">
                     <div class="bc_mbl bc_box" id="bc_foot">
@@ -173,8 +200,3 @@
 </body>
 
 </html>
-
-
-
-
-
