@@ -1,7 +1,9 @@
 .bc-fluid {
    position: relative;
    margin: 0 auto;
-   padding: 0 15px
+   padding: 0 15px;
+   max-width: 1200px; /* 添加最大宽度限制 */
+   width: 100%; /* 确保宽度为100% */
 }
 
 .bc-row:after,
@@ -411,14 +413,14 @@ h6 {
    .bc-lg10,
    .bc-lg11,
    .bc-lg12,
-   .bc-lg2,
-   .bc-lg3,
-   .bc-lg4,
-   .bc-lg5,
-   .bc-lg6,
-   .bc-lg7,
-   .bc-lg8,
-   .bc-lg9 {
+.bc-lg2,
+.bc-lg3,
+.bc-lg4,
+.bc-lg5,
+.bc-lg6,
+.bc-lg7,
+.bc-lg8,
+.bc-lg9 {
       float: left
    }
 
@@ -479,3 +481,22 @@ h6 {
    padding: 5px
 }
 
+/* ===== 新增：确保所有行正确包裹内容 ===== */
+.bc-row {
+   display: flex;
+   flex-wrap: wrap;
+   justify-content: center;
+}
+
+/* ===== 新增：确保列正确填充 ===== */
+.bc-xs1, .bc-xs2, .bc-xs3, .bc-xs4, .bc-xs5, .bc-xs6,
+.bc-xs7, .bc-xs8, .bc-xs9, .bc-xs10, .bc-xs11, .bc-xs12,
+.bc-sm1, .bc-sm2, .bc-sm3, .bc-sm4, .bc-sm5, .bc-sm6,
+.bc-sm7, .bc-sm8, .bc-sm9, .bc-sm10, .bc-sm11, .bc-sm12,
+.bc-md1, .bc-md2, .bc-md3, .bc-md4, .bc-md5, .bc-md6,
+.bc-md7, .bc-md8, .bc-md9, .bc-md10, .bc-md11, .bc-md12,
+.bc-lg1, .bc-lg2, .bc-lg3, .bc-lg4, .bc-lg5, .bc-lg6,
+.bc-lg7, .bc-lg8, .bc-lg9, .bc-lg10, .bc-lg11, .bc-lg12 {
+   box-sizing: border-box;
+   padding: 5px;
+}
