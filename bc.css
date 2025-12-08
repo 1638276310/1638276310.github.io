@@ -479,21 +479,3 @@ h6 {
    padding: 5px
 }
 
-.bc-row.bc-space10 > a[class*="bc-"] {
-    display: block !important;
-    box-sizing: border-box !important;
-}
-
-/* 2. 确保内容区域填满整个栅格宽度，防止换行 */
-.bc_a {
-    width: 100% !important;
-    box-sizing: border-box !important;
-    margin: 0 !important;
-}
-
-/* 3. 可选：优化移动端间距，防止过挤 */
-@media screen and (max-width: 768px) {
-    .bc-row.bc-space10 > a.bc-xs6 {
-        width: 50% !important;
-    }
-}
