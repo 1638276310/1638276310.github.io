@@ -1,4 +1,4 @@
-const API_URL = 'https://api.jkyai.top/API/sjmtzs.php';
+const API_URL = 'https://yunzhiapi.cn/API/sjmtzs.php';
 
 // 状态管理
 const state = {
